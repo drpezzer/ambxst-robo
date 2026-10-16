@@ -39,11 +39,14 @@ Scope {
     Timer {
         id: reselect
         property int tries: 0
-        interval: 120
+        // Up to ~2 s: from the chat page the notch first gives back the
+        // keyboard and the window builds later than from home, after the old
+        // 0.5 s of retries had run out (so it stayed on its first tab).
+        interval: 100
         repeat: true
         onTriggered: {
             if (GlobalStates.settingsWindowVisible) GlobalStates.settingsCurrentTab = root.aiSettingsTab;
-            if (++tries >= 4) stop();
+            if (++tries >= 20) stop();
         }
     }
     /** Upstream's own window, kept for a host without Ambxst's settings. */

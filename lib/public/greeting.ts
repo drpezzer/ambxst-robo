@@ -423,7 +423,6 @@ function roboArm(x: CanvasRenderingContext2D, ax: number, ay: number, bx: number
   const px = -s;
   const py = c;
   const ly = KEY2.x * px + KEY2.y * py;
-  const lx = KEY2.x * c + KEY2.y * s;
   const r = Math.min(w / 2, w * (ROBO_ROUND[a.shape] ?? 0.32));
   const outline = () => x.roundRect(0, -w / 2, len, w, r);
   x.save();
@@ -452,24 +451,24 @@ function roboArm(x: CanvasRenderingContext2D, ax: number, ay: number, bx: number
   outline();
   x.fillStyle = g;
   x.fill();
-  // the rolled edge: the bar less itself moved off the light (rim), and toward it (shade)
-  const d = Math.max(0.5, w * 0.12);
-  const big = (len + w) * 2;
-  x.save();
+  // the rolled edge: a lit rim on the side toward the light, a shade on the
+  // other, as one gradient across the bar filled in its own outline. (No
+  // clip and no even-odd fill: Qt's threaded Canvas ignores both here and
+  // painted the whole surrounding square.)
+  const edge = Math.min(0.3, Math.max(0.06, (w * 0.12) / w));
+  const lit = ly < 0 ? 0 : 1; // the edge (0: -w/2, 1: +w/2) facing the light
+  const rimC = "rgba(255,255,255,0.3)";
+  const shadeC = "rgba(0,0,0,0.2)";
+  const clear = "rgba(0,0,0,0)";
+  const e = x.createLinearGradient(0, -w / 2, 0, w / 2);
+  e.addColorStop(0, lit === 0 ? rimC : shadeC);
+  e.addColorStop(edge, clear);
+  e.addColorStop(1 - edge, clear);
+  e.addColorStop(1, lit === 0 ? shadeC : rimC);
   x.beginPath();
   outline();
-  x.clip();
-  for (const [k, style] of [[1, "rgba(255,255,255,0.3)"], [-1, "rgba(0,0,0,0.2)"]] as const) {
-    x.beginPath();
-    x.rect(-big, -big, 2 * big, 2 * big);
-    x.save();
-    x.translate(-lx * d * k, -ly * d * k);
-    outline();
-    x.restore();
-    x.fillStyle = style;
-    x.fill("evenodd");
-  }
-  x.restore();
+  x.fillStyle = e;
+  x.fill();
   x.beginPath();
   outline();
   x.strokeStyle = "rgba(0,0,0,0.32)";
@@ -494,25 +493,27 @@ function ambxstHand(x: CanvasRenderingContext2D, cx: number, cy: number, r: numb
   x.arc(cx, cy, r, 0, Math.PI * 2);
   x.fillStyle = g;
   x.fill();
-  x.save();
-  x.clip();
-  // puffed: darker toward the edge, a lit rim, a gloss
-  x.beginPath();
-  x.arc(cx, cy, r, 0, Math.PI * 2);
-  x.lineWidth = r * 0.5;
-  x.strokeStyle = "rgba(0,0,0,0.1)";
-  x.stroke();
-  x.beginPath();
-  x.arc(cx + r * 0.12, cy + r * 0.16, r, 0, Math.PI * 2);
-  x.rect(cx - 2 * r, cy - 2 * r, 4 * r, 4 * r);
-  x.fillStyle = "rgba(255,255,255,0.22)";
-  x.fill("evenodd");
+  // puffed: darker toward the edge, a lit rim, a gloss — each a gradient in
+  // the ball's own circle (no clip, no even-odd: the threaded Canvas ignores
+  // them and painted the square around it).
+  const ring = (fill: CanvasGradient) => {
+    x.beginPath();
+    x.arc(cx, cy, r, 0, Math.PI * 2);
+    x.fillStyle = fill;
+    x.fill();
+  };
+  const edge = x.createRadialGradient(cx, cy, r * 0.5, cx, cy, r);
+  edge.addColorStop(0, "rgba(0,0,0,0)");
+  edge.addColorStop(1, "rgba(0,0,0,0.1)");
+  ring(edge);
+  const rim = x.createRadialGradient(cx + r * 0.12, cy + r * 0.16, r * 0.82, cx + r * 0.12, cy + r * 0.16, r);
+  rim.addColorStop(0, "rgba(255,255,255,0)");
+  rim.addColorStop(1, "rgba(255,255,255,0.22)");
+  ring(rim);
   const hl = x.createRadialGradient(cx - r * 0.35, cy - r * 0.4, 0, cx - r * 0.35, cy - r * 0.4, r * 0.6);
   hl.addColorStop(0, "rgba(255,255,255,0.45)");
   hl.addColorStop(1, "rgba(255,255,255,0)");
-  x.fillStyle = hl;
-  x.fillRect(cx - r, cy - r, 2 * r, 2 * r);
-  x.restore();
+  ring(hl);
   x.restore();
 }
 

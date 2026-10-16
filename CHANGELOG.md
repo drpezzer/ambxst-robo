@@ -1,7 +1,11 @@
 # Changelog
 
-## Unreleased
+## 1.1.2 — clean greeting hands
 
+- The greeting's hands no longer show a pale square around them (the shading
+  used a clip and an even-odd fill that Qt's threaded Canvas ignores).
+- The settings button on the chat page now opens Ambxst's settings on the AI
+  tab, as it already did from the home page.
 - When Claude Code exits straight away (not logged in, a bad flag…), the chat
   shows what it said instead of "Broken pipe".
 
