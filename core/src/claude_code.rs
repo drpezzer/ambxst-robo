@@ -1126,8 +1126,19 @@ where
     // stdin stays open for the whole turn: the answers to permission requests
     // go there. Closing it after the result is what ends the CLI.
     let first = format!("{}\n", user_message(prompt));
-    stdin.write_all(first.as_bytes()).await.map_err(|e| format!("Claude Code: {e}"))?;
-    stdin.flush().await.map_err(|e| format!("Claude Code: {e}"))?;
+    // A CLI that dies at once (bad flag, not logged in…) closes stdin before
+    // the prompt lands: that broken pipe is not the error, what it printed
+    // is. Carry on and let the end of the run report its stderr.
+    let wrote = async {
+        stdin.write_all(first.as_bytes()).await?;
+        stdin.flush().await
+    }
+    .await;
+    if let Err(e) = wrote {
+        if e.kind() != std::io::ErrorKind::BrokenPipe {
+            return Err(format!("Claude Code: {e}"));
+        }
+    }
     let errors = tokio::spawn(async move {
         let mut buf = Vec::new();
         let _ = (&mut stderr).take(MAX_STDERR as u64).read_to_end(&mut buf).await;

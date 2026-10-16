@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- When Claude Code exits straight away (not logged in, a bad flag…), the chat
+  shows what it said instead of "Broken pipe".
+
 ## 1.1.1 — new greeting hands
 
 - **New hands in the launch greeting**: Robo waves with simple hands, one
