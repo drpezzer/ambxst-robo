@@ -75,12 +75,10 @@ export function greetMetal(x: CanvasRenderingContext2D, x0: number, y0: number, 
 export type GreetArms =
   | {
     kind: "robo";
-    /** Settings → Style's head shape: the arms' corners follow it. */
+    /** Settings → Style's head shape: the arms' corners a touch after it. */
     shape: RobotHeadShape;
     /** His shell, lit at a normal (x right, y down, z toward the viewer). */
     shell: (nx: number, ny: number, nz: number) => string;
-    /** His trim (the ears' metal), the same way. */
-    trim: (nx: number, ny: number, nz: number) => string;
   }
   | { kind: "ambxst"; top: string; mid: string; bottom: string };
 
@@ -98,5 +96,5 @@ export function greetArms(): GreetArms | null {
     const l = Math.hypot(nx, ny, nz) || 1;
     return css(radiance(m, nx / l, ny / l, nz / l));
   };
-  return { kind: "robo", shape: look.shape, shell: lit(pal.shell), trim: lit(pal.trim) };
+  return { kind: "robo", shape: look.shape, shell: lit(pal.shell) };
 }

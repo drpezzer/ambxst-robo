@@ -2,9 +2,9 @@
 
 ## Unreleased
 
-- **New arms in the launch greeting**: Robo waves with robot arms in his own
-  shell colour and finish, their corners following his head's shape, with an
-  elbow bolt and a two-finger gripper. Axenide gets round hands in his colour.
+- **New arms in the launch greeting**: Robo waves with simple arms, one
+  rounded bar each in his own shell colour, lit like his head. Axenide gets
+  round hands in his colour.
 
 ## 1.1.0 — installs itself
 

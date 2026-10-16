@@ -219,6 +219,11 @@ npm ci
 node lib/build.mjs            # → mod/payload/modules/robo/robo-lib.js
 ```
 
+`tools/check-public.sh` builds a copy of the bundle (to
+`/tmp/robo-lib.public.js`, or the path given) and checks that nothing of the
+personal build's own mascot made it into it or into the repo's sources: run it
+before committing changes under `lib/`.
+
 After adding or removing payload files, or to bump the version, regenerate the
 manifest (`git add` new files first; it lists tracked files only). It also
 writes `mod/payload/modules/robo/core/RELEASE`, the daemon version the mod

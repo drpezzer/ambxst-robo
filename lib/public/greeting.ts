@@ -5,7 +5,7 @@
 // halo) and the controller are upstream's greeting.ts (Coucou, MIT), copied as
 // is; everything drawn of the mascot is Robo's or Axenide's own: their figure
 // (lib/robot/greeting.ts greetRobo, which hands Axenide to ambxst/scenes.ts),
-// their arms and hands (Robo's robot arms, Axenide's round hands), their
+// their arms and hands (Robo's rounded bars, Axenide's round hands), their
 // badge, and the minis as plain dots.
 
 import { closeCurve } from "@coucou/core/anim";
@@ -389,11 +389,11 @@ function handFill(x: CanvasRenderingContext2D, x0: number, y0: number, x1: numbe
 }
 
 // ── Arms and hands, per mascot ────────────────────────────────────────────────
-// Robo: rectangular arms in his shell (lit like his head, its rolled edge a
-// lit rim and a shaded one), their corners his head's shape, a bolt of his
-// ears' metal at the elbow, and a two-prong gripper. Axenide: round hands in
-// his own colour, shaded like his body. Neither: upstream's mittens. Where the
-// hands go (handLPos, handRPos) and when is upstream's timeline, unchanged.
+// Robo: one rounded bar per arm, in his shell, lit like his head (a soft rim
+// on the light's side, a shaded edge opposite), its corners a touch rounder or
+// squarer with his head's shape. Axenide: round hands in his own colour,
+// shaded like his body. Neither: upstream's mittens. Where the hands go
+// (handLPos, handRPos) and when is upstream's timeline, unchanged.
 
 /** The key light's direction on screen (light.ts KEY, toward the light). */
 const KEY2 = (() => {
@@ -404,121 +404,76 @@ const KEY2 = (() => {
 type RoboArms = Extract<GreetArms, { kind: "robo" }>;
 type AmbxstArms = Extract<GreetArms, { kind: "ambxst" }>;
 
-/** A w × h part of Robo, centred, with his head's corners (begins no path). */
-function partOutline(x: CanvasRenderingContext2D, w: number, h: number, shape: string) {
-  const m = Math.min(w, h);
-  if (shape === "hexagon") {
-    const c = m * 0.32;
-    x.moveTo(-w / 2 + c, -h / 2);
-    x.lineTo(w / 2 - c, -h / 2);
-    x.lineTo(w / 2, -h / 2 + c);
-    x.lineTo(w / 2, h / 2 - c);
-    x.lineTo(w / 2 - c, h / 2);
-    x.lineTo(-w / 2 + c, h / 2);
-    x.lineTo(-w / 2, h / 2 - c);
-    x.lineTo(-w / 2, -h / 2 + c);
-    x.closePath();
-    return;
-  }
-  const r = shape === "circle" ? m / 2 : shape === "square" ? m * 0.18 : m * 0.28;
-  x.roundRect(-w / 2, -h / 2, w, h, r);
-}
+/** How round an arm's ends are, of its thickness: soft, a little after his head. */
+const ROBO_ROUND: Record<string, number> = { circle: 0.42, rectangle: 0.32, hexagon: 0.3, square: 0.26 };
 
 /**
- * One part of Robo's arm, w × h centred on the origin, turned by `theta` on
- * screen: his shell (or his trim), lit across from the key light's side, a
- * lit rim on that side and a shaded one opposite (his head's rolled edge).
+ * One arm of Robo, from (ax, ay) (behind his ear) to (bx, by), its end, w
+ * thick: a rounded bar of his shell, shaded across like a moulded slab (its
+ * edges turned away), a lit rim toward the key light and a shaded one away.
  */
-function roboPart(x: CanvasRenderingContext2D, w: number, h: number, theta: number, a: RoboArms, metal: "shell" | "trim" = "shell") {
-  if (w < 0.3 || h < 0.3) return;
-  const lit = a[metal];
-  const c = Math.cos(theta);
-  const s = Math.sin(theta);
-  // the light's direction in the part's own frame
+function roboArm(x: CanvasRenderingContext2D, ax: number, ay: number, bx: number, by: number, w: number, a: RoboArms) {
+  const len = Math.hypot(bx - ax, by - ay);
+  if (w < 0.3 || len < 0.3) return;
+  const th = Math.atan2(by - ay, bx - ax);
+  const c = Math.cos(th);
+  const s = Math.sin(th);
+  // across the bar (its local y) on screen, and the light along it
+  const px = -s;
+  const py = c;
+  const ly = KEY2.x * px + KEY2.y * py;
   const lx = KEY2.x * c + KEY2.y * s;
-  const ly = -KEY2.x * s + KEY2.y * c;
-  const ext = Math.abs(lx) * (w / 2) + Math.abs(ly) * (h / 2);
-  const g = x.createLinearGradient(lx * ext, ly * ext, -lx * ext, -ly * ext);
-  g.addColorStop(0, lit(KEY2.x * 0.75, KEY2.y * 0.75, 0.6));
-  g.addColorStop(0.3, lit(KEY2.x * 0.2, KEY2.y * 0.2, 1));
-  g.addColorStop(0.72, lit(-KEY2.x * 0.35, -KEY2.y * 0.35, 0.9));
-  g.addColorStop(1, lit(-KEY2.x * 0.8, -KEY2.y * 0.8, 0.45));
+  const r = Math.min(w / 2, w * (ROBO_ROUND[a.shape] ?? 0.32));
+  const outline = () => x.roundRect(0, -w / 2, len, w, r);
+  x.save();
+  x.translate(ax, ay);
+  x.rotate(th);
+  // its depth, like his head's lower side: the bar again, a little lower, darker
+  const dz = w * 0.14;
+  x.save();
+  x.translate(s * dz, c * dz);
   x.beginPath();
-  partOutline(x, w, h, a.shape);
+  outline();
+  x.fillStyle = a.shell(0, 0.9, 0.3);
+  x.fill();
+  x.strokeStyle = "rgba(0,0,0,0.32)";
+  x.lineWidth = Math.max(0.5, w * 0.06);
+  x.stroke();
+  x.restore();
+  // the slab: normals across it, edges turned away, its face toward the viewer
+  const g = x.createLinearGradient(0, -w / 2, 0, w / 2);
+  const n = (v: number, z: number) => a.shell(px * v, py * v, z);
+  g.addColorStop(0, n(-0.8, 0.6));
+  g.addColorStop(0.22, n(-0.15, 1));
+  g.addColorStop(0.78, n(0.15, 1));
+  g.addColorStop(1, n(0.8, 0.6));
+  x.beginPath();
+  outline();
   x.fillStyle = g;
   x.fill();
-  // The rolled edge: the part less itself moved off the light, and toward it.
-  const m = Math.min(w, h);
-  const d = Math.max(0.5, m * 0.13);
-  const big = Math.max(w, h) * 2;
+  // the rolled edge: the bar less itself moved off the light (rim), and toward it (shade)
+  const d = Math.max(0.5, w * 0.12);
+  const big = (len + w) * 2;
   x.save();
   x.beginPath();
-  partOutline(x, w, h, a.shape);
+  outline();
   x.clip();
-  for (const [k, style] of [[1, "rgba(255,255,255,0.32)"], [-1, "rgba(0,0,0,0.22)"]] as const) {
+  for (const [k, style] of [[1, "rgba(255,255,255,0.3)"], [-1, "rgba(0,0,0,0.2)"]] as const) {
     x.beginPath();
     x.rect(-big, -big, 2 * big, 2 * big);
     x.save();
     x.translate(-lx * d * k, -ly * d * k);
-    partOutline(x, w, h, a.shape);
+    outline();
     x.restore();
     x.fillStyle = style;
     x.fill("evenodd");
   }
   x.restore();
   x.beginPath();
-  partOutline(x, w, h, a.shape);
-  x.strokeStyle = "rgba(0,0,0,0.38)";
-  x.lineWidth = Math.max(0.5, m * 0.07);
+  outline();
+  x.strokeStyle = "rgba(0,0,0,0.32)";
+  x.lineWidth = Math.max(0.5, w * 0.06);
   x.stroke();
-}
-
-/** A bolt of his ears' metal: a little lit sphere. */
-function roboBolt(x: CanvasRenderingContext2D, cx: number, cy: number, r: number, a: RoboArms) {
-  if (r < 0.3) return;
-  const g = x.createRadialGradient(cx + KEY2.x * r * 0.4, cy + KEY2.y * r * 0.4, r * 0.05, cx, cy, r);
-  g.addColorStop(0, a.trim(KEY2.x * 0.5, KEY2.y * 0.5, 0.85));
-  g.addColorStop(0.55, a.trim(0, 0, 1));
-  g.addColorStop(1, a.trim(-KEY2.x * 0.7, -KEY2.y * 0.7, 0.35));
-  x.beginPath();
-  x.arc(cx, cy, r, 0, Math.PI * 2);
-  x.fillStyle = g;
-  x.fill();
-  x.strokeStyle = "rgba(0,0,0,0.4)";
-  x.lineWidth = Math.max(0.5, r * 0.18);
-  x.stroke();
-}
-
-/** A bar of his arm from (ax, ay) to (bx, by), w thick, its ends past them by `over`. */
-function roboBar(x: CanvasRenderingContext2D, ax: number, ay: number, bx: number, by: number, w: number, over: number, a: RoboArms) {
-  const len = Math.hypot(bx - ax, by - ay);
-  const th = Math.atan2(by - ay, bx - ax);
-  x.save();
-  x.translate((ax + bx) / 2, (ay + by) / 2);
-  x.rotate(th);
-  roboPart(x, len + 2 * over, w, th, a);
-  x.restore();
-}
-
-/** His hand: a cuff of his ears' metal, a palm and two fingers, `r` in from its middle, pointing along `th`. */
-function roboGripper(x: CanvasRenderingContext2D, cx: number, cy: number, r: number, th: number, a: RoboArms) {
-  x.save();
-  x.translate(cx, cy);
-  x.rotate(th);
-  for (const side of [-1, 1]) {
-    x.save();
-    x.translate(r * 0.52, side * r * 0.46);
-    roboPart(x, r * 0.86, r * 0.5, th, a);
-    x.restore();
-  }
-  x.save();
-  x.translate(-r * 0.1, 0);
-  roboPart(x, r * 0.86, r * 1.42, th, a);
-  x.restore();
-  x.save();
-  x.translate(-r * 0.62, 0);
-  roboPart(x, r * 0.3, r * 1.02, th, a, "trim");
-  x.restore();
   x.restore();
 }
 
@@ -573,11 +528,10 @@ function drawHandL(x: CanvasRenderingContext2D, hw: number, hh: number, p: Pose,
   }
   if (arms?.kind === "robo") {
     const s = roboShoulder(hw, hh, -1);
-    // one arm from behind his ear, swinging from it as he waves
-    const w = hh * 2 * 0.15 * p.handL;
+    // one arm from behind his ear, swinging from it as he waves, its end
+    // where the hand would be
     const th = Math.atan2(hy - s.y, hx - s.x);
-    roboBar(x, s.x, s.y, hx - Math.cos(th) * r * 0.6, hy - Math.sin(th) * r * 0.6, w, 0, arms);
-    roboGripper(x, hx, hy, r, th, arms);
+    roboArm(x, s.x, s.y, hx + Math.cos(th) * r * 0.6, hy + Math.sin(th) * r * 0.6, hh * 2 * 0.19 * p.handL, arms);
     return;
   }
   x.save();
@@ -600,21 +554,8 @@ function drawHandR(x: CanvasRenderingContext2D, hw: number, hh: number, p: Pose,
   }
   if (arms?.kind === "robo") {
     const s = roboShoulder(hw, hh, 1);
-    const hr = h.T * 0.68;
-    // the forearm is the capsule, raised from an elbow at its lower end (a
-    // bolt of his ears' metal), the gripper at its raised end, inside its
-    // bounds; the upper arm goes behind his ear
-    const ex = h.x - ux * h.L * 0.42;
-    const ey = h.y - uy * h.L * 0.42;
-    const reach = h.L * 0.5 - Math.max(0, hr - h.T / 2);
-    const hx = h.x + ux * reach;
-    const hy = h.y + uy * reach;
-    const w = h.T * 0.62;
-    const th = h.ang;
-    roboBar(x, s.x, s.y, ex, ey, w * 0.9, 0, arms);
-    roboBar(x, ex, ey, hx - ux * hr * 0.6, hy - uy * hr * 0.6, w, 0, arms);
-    roboBolt(x, ex, ey, w * 0.5, arms);
-    roboGripper(x, hx, hy, hr, th, arms);
+    // one arm from behind his ear to the capsule's raised end
+    roboArm(x, s.x, s.y, h.x + ux * h.L * 0.5, h.y + uy * h.L * 0.5, hh * 2 * 0.19 * p.handR, arms);
     return;
   }
   x.save();
