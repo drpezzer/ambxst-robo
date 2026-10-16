@@ -7,6 +7,9 @@ import qs.modules.robo as C
 Item {
     id: slot
     property string viewName: ""
+    /** Port: the size this slot settles at once the island stops growing (its own size by default). */
+    property real settledWidth: width
+    property real settledHeight: height
     readonly property bool on: C.Robo.rev >= 0 && C.Robo.state.view === viewName
     readonly property string fileName: viewName.charAt(0).toUpperCase() + viewName.slice(1) + "View.qml"
 
@@ -50,5 +53,17 @@ Item {
         property: "viewOn"
         value: slot.on
         when: loader.item !== null && loader.item.hasOwnProperty("viewOn")
+    }
+    Binding {
+        target: loader.item
+        property: "settledWidth"
+        value: slot.settledWidth
+        when: loader.item !== null && loader.item.hasOwnProperty("settledWidth")
+    }
+    Binding {
+        target: loader.item
+        property: "settledHeight"
+        value: slot.settledHeight
+        when: loader.item !== null && loader.item.hasOwnProperty("settledHeight")
     }
 }

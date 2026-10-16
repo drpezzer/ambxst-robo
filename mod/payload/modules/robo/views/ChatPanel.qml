@@ -29,8 +29,10 @@ Item {
         Canvas {
             id: dash
             anchors.fill: parent
-            onWidthChanged: requestPaint()
-            onHeightChanged: requestPaint()
+            // Port (performance): drawn only while it shows (it is hidden but
+            // for a drag, and the island resized it at every frame of an open).
+            onWidthChanged: if (visible) requestPaint()
+            onHeightChanged: if (visible) requestPaint()
             onVisibleChanged: if (visible) requestPaint()
             onPaint: {
                 const ctx = getContext("2d");
@@ -85,15 +87,39 @@ Item {
     property var parts: [[], [], [], []]
     /** How many parts, from the newest, are drawn. */
     property int partsShown: 1
+    /**
+     * Port (performance): the size this panel settles at once the island
+     * stops growing (PromptView passes the island's target); the log is laid
+     * out at it from the start.
+     */
+    property real settledWidth: width
+    property real settledHeight: height
+    /**
+     * Port (performance): no rows are made before the panel has shown once
+     * with its log's width: the Robo tab's home chat, hidden while the notch
+     * opens onto the chat page, made a second log nobody saw, and the chat
+     * page's rows were first made at a log width of zero, before the panel
+     * was anchored, and laid out again at once.
+     */
+    property bool rowsReady: false
+    readonly property bool canDrawRows: visible && log.width > 0
+    onCanDrawRowsChanged: if (canDrawRows) rowsReady = true
+    /** The island is still growing (or shrinking) to the settled size. */
+    readonly property bool resizing: Math.abs(settledWidth - width) > 0.5 || Math.abs(settledHeight - height) > 0.5
     Timer {
         id: partsTimer
         // Config.animDuration (300 ms) after the push, which comes a turn after
-        // the build; counted from when the panel shows (a hidden one waits).
+        // the build; counted from when the panel shows (a hidden one waits),
+        // and from when the island has stopped growing.
         interval: 380
-        running: root.partsShown < 4 && root.visible
+        running: root.partsShown < 4 && root.rowsReady && root.visible && !root.resizing
         repeat: true
         onTriggered: {
             interval = 48;
+            // The part comes in above what shows: the view keeps its distance
+            // from the bottom (at the end, it stays there) while it lays out.
+            log.keepFromBottom = log.contentHeight - log.contentY;
+            log.keepUntil = Date.now() + 400;
             root.partsShown++;
         }
     }
@@ -196,6 +222,7 @@ Item {
         chat.addHooks(hooks);
         syncRows();
         chat.syncWorkDir();
+        if (canDrawRows) rowsReady = true;
     }
     Component.onDestruction: chat.removeHooks(hooks)
 
@@ -459,153 +486,165 @@ Item {
         }
 
         // .chat-log: scrolls, rows 6 apart, padding 2 0.
-        Flickable {
-            id: log
+        // Port (performance): the log is laid out at the size the panel settles
+        // at (settledWidth/Height), its bottom on the visible area's bottom,
+        // and only this clip follows the island while it grows: its rows are
+        // not re-wrapped, nor the log re-scrolled, at every frame of the open.
+        Item {
+            id: logClip
             visible: !root.picking
             y: chipRow.visible && !root.chipInChat ? chipRow.height + 6 : 0
             width: parent.width
             height: modelRow.y - 6 - y
             clip: true
-            contentWidth: width
-            contentHeight: logCol.implicitHeight + 4
-            boundsBehavior: Flickable.StopAtBounds
-            function toBottom() { contentY = Math.max(0, contentHeight - height); atEnd = true; }
-            // Port: older rows load when the top is reached; the view stays on
-            // the row it showed (the content grows above it).
-            property real keepFromBottom: -1
-            // Scrolling of his own only: while the log lays out it sits at the
-            // top for a moment, which would load everything.
-            property double settledAt: 0
-            // The log follows new text only while it is at its end (not while
-            // he reads further up, or selects).
-            property bool atEnd: true
-            property double keepUntil: 0
-            onContentYChanged: {
-                if (Date.now() > keepUntil) atEnd = contentY >= contentHeight - height - 24;
-                if (Date.now() - settledAt < 600 || contentHeight <= height + 40) return;
-                if (selMa.pressed) return;
-                if (contentY < 40 && root.hiddenRows > 0 && Date.now() > keepUntil) {
-                    keepFromBottom = contentHeight - contentY;
-                    keepUntil = Date.now() + 400;
-                    root.shown += 30;
-                    root.syncRows();
+            Flickable {
+                id: log
+                y: logClip.height - height
+                // body's and the log's own size, from the settled panel size (the
+                // field's bar, 40, and the model row under the log are fixed).
+                width: root.settledWidth - 2 - root.leftPad - 16
+                height: Math.max(0, root.settledHeight - 2 - 12 - 14 - bar.height - 6 - modelRow.height - 6 - logClip.y)
+                contentWidth: width
+                contentHeight: logCol.implicitHeight + 4
+                boundsBehavior: Flickable.StopAtBounds
+                function toBottom() { contentY = Math.max(0, contentHeight - height); atEnd = true; }
+                // Port: older rows load when the top is reached; the view stays on
+                // the row it showed (the content grows above it).
+                property real keepFromBottom: -1
+                // Scrolling of his own only: while the log lays out it sits at the
+                // top for a moment, which would load everything.
+                property double settledAt: 0
+                // The log follows new text only while it is at its end (not while
+                // he reads further up, or selects).
+                property bool atEnd: true
+                property double keepUntil: 0
+                onContentYChanged: {
+                    if (Date.now() > keepUntil) atEnd = contentY >= contentHeight - height - 24;
+                    if (Date.now() - settledAt < 600 || contentHeight <= height + 40) return;
+                    if (selMa.pressed) return;
+                    if (contentY < 40 && root.hiddenRows > 0 && Date.now() > keepUntil) {
+                        keepFromBottom = contentHeight - contentY;
+                        keepUntil = Date.now() + 400;
+                        root.shown += 30;
+                        root.syncRows();
+                    }
                 }
-            }
-            onContentHeightChanged: {
-                settledAt = Date.now();
-                // Older rows lay out over a few frames: hold the view on the
-                // same row for all of them.
-                if (Date.now() < keepUntil) {
-                    contentY = Math.max(0, contentHeight - keepFromBottom);
-                    return;
+                onContentHeightChanged: {
+                    settledAt = Date.now();
+                    // Older rows lay out over a few frames: hold the view on the
+                    // same row for all of them.
+                    if (Date.now() < keepUntil) {
+                        contentY = Math.max(0, contentHeight - keepFromBottom);
+                        return;
+                    }
+                    if (atEnd && !selMa.pressed) toBottom();
                 }
-                if (atEnd && !selMa.pressed) toBottom();
-            }
-            onHeightChanged: toBottom()
+                onHeightChanged: toBottom()
 
-            Column {
-                id: logCol
-                y: 2
-                width: log.width - logBar.width
-                spacing: 6
-                Repeater {
-                    model: 4
-                    delegate: Column {
-                        id: part
-                        required property int index
-                        // Its own flag: only this part's model changes when it comes in.
-                        readonly property bool drawn: index >= 4 - root.partsShown
-                        width: logCol.width
-                        spacing: 6
-                        visible: partRows.count > 0
-                        Repeater {
-                            id: partRows
-                            model: part.drawn ? root.parts[part.index] : []
-                            delegate: ChatRow {
-                                // (ChatRow has its own modelData: marked required, not redeclared.)
-                                required modelData
-                                width: logCol.width
+                Column {
+                    id: logCol
+                    y: 2
+                    width: log.width - logBar.width
+                    spacing: 6
+                    Repeater {
+                        model: 4
+                        delegate: Column {
+                            id: part
+                            required property int index
+                            // Its own flag: only this part's model changes when it comes in.
+                            readonly property bool drawn: index >= 4 - root.partsShown
+                            width: logCol.width
+                            spacing: 6
+                            visible: partRows.count > 0
+                            Repeater {
+                                id: partRows
+                                model: part.drawn && root.rowsReady ? root.parts[part.index] : []
+                                delegate: ChatRow {
+                                    // (ChatRow has its own modelData: marked required, not redeclared.)
+                                    required modelData
+                                    width: logCol.width
+                                }
                             }
                         }
                     }
-                }
-                // The streamed answer, or the dots (rows() ends with it while a turn runs).
-                ChatRow {
-                    // Port (his ask): while a turn runs the working line stands in for the dots.
-                    visible: root.tail !== null && !(root.tail.typing && root.sending)
-                    width: logCol.width
-                    modelData: root.tail !== null ? root.tail : ({ role: "assistant", content: "" })
-                }
-                // Port (his ask): Claude Code's spinner line under the latest
-                // message for as long as the turn runs (*Noodling…), shimmering
-                // like the compacting line; it gives way to that line.
-                ChatRow {
-                    visible: root.sending && !(root.tail !== null && root.tail.role === "compacting")
-                    width: logCol.width
-                    modelData: ({ role: "working", content: "\u273b " + root.workVerb + "\u2026" })
-                }
-                // Port: typed during the answer, dimmed under the working line until
-                // Claude Code takes it in (or, if it never does, sent once it is done).
-                Repeater {
-                    model: root.rev >= 0 ? root.chat.queuedRows() : []
-                    delegate: ChatRow {
-                        // (ChatRow has its own modelData: marked required, not redeclared.)
-                        required modelData
+                    // The streamed answer, or the dots (rows() ends with it while a turn runs).
+                    ChatRow {
+                        // Port (his ask): while a turn runs the working line stands in for the dots.
+                        visible: root.tail !== null && !(root.tail.typing && root.sending)
                         width: logCol.width
-                        opacity: 0.5
+                        modelData: root.tail !== null ? root.tail : ({ role: "assistant", content: "" })
+                    }
+                    // Port (his ask): Claude Code's spinner line under the latest
+                    // message for as long as the turn runs (*Noodling…), shimmering
+                    // like the compacting line; it gives way to that line.
+                    ChatRow {
+                        visible: root.sending && !(root.tail !== null && root.tail.role === "compacting")
+                        width: logCol.width
+                        modelData: ({ role: "working", content: "\u273b " + root.workVerb + "\u2026" })
+                    }
+                    // Port: typed during the answer, dimmed under the working line until
+                    // Claude Code takes it in (or, if it never does, sent once it is done).
+                    Repeater {
+                        model: root.rev >= 0 ? root.chat.queuedRows() : []
+                        delegate: ChatRow {
+                            // (ChatRow has its own modelData: marked required, not redeclared.)
+                            required modelData
+                            width: logCol.width
+                            opacity: 0.5
+                        }
                     }
                 }
-            }
 
-            // Port (his ask): one selection across the whole log. Every
-            // paragraph, list item, code block and message is a TextEdit of its
-            // own, and a selection can't leave one; the Flickable also took
-            // vertical drags. This layer owns the drag (no stealing), selects
-            // the span in each TextEdit it crosses (persistentSelection keeps
-            // them lit), and Ctrl+C copies them as one text. A plain click
-            // still opens a link or presses a code block's copy button.
-            MouseArea {
-                id: selMa
-                anchors.fill: logCol
-                z: 10
-                preventStealing: true
-                cursorShape: Qt.IBeamCursor
-                property point anchor: Qt.point(0, 0)
-                property point last: Qt.point(0, 0)
-                property bool dragging: false
+                // Port (his ask): one selection across the whole log. Every
+                // paragraph, list item, code block and message is a TextEdit of its
+                // own, and a selection can't leave one; the Flickable also took
+                // vertical drags. This layer owns the drag (no stealing), selects
+                // the span in each TextEdit it crosses (persistentSelection keeps
+                // them lit), and Ctrl+C copies them as one text. A plain click
+                // still opens a link or presses a code block's copy button.
+                MouseArea {
+                    id: selMa
+                    anchors.fill: logCol
+                    z: 10
+                    preventStealing: true
+                    cursorShape: Qt.IBeamCursor
+                    property point anchor: Qt.point(0, 0)
+                    property point last: Qt.point(0, 0)
+                    property bool dragging: false
 
-                onPressed: m => {
-                    anchor = Qt.point(m.x, m.y);
-                    last = anchor;
-                    dragging = false;
-                    root.clearLogSelection();
-                }
-                onPositionChanged: m => {
-                    last = Qt.point(m.x, m.y);
-                    if (!dragging && Math.abs(m.x - anchor.x) + Math.abs(m.y - anchor.y) < 4) return;
-                    dragging = true;
-                    root.selectSpan(anchor, last);
-                }
-                onReleased: m => {
-                    if (!dragging) root.clickThrough(m.x, m.y);
-                    dragging = false;
-                }
-                onDoubleClicked: m => root.selectWordAt(m.x, m.y)
-                // Dragging past the log's edge scrolls it, and the selection follows.
-                Timer {
-                    interval: 30
-                    repeat: true
-                    running: selMa.dragging && selMa.pressed
-                    onTriggered: {
-                        const y = selMa.last.y - log.contentY + logCol.y;
-                        let dy = 0;
-                        if (y < 14) dy = -10;
-                        else if (y > log.height - 14) dy = 10;
-                        if (!dy) return;
-                        const before = log.contentY;
-                        log.contentY = Math.max(0, Math.min(log.contentHeight - log.height, log.contentY + dy));
-                        selMa.last = Qt.point(selMa.last.x, selMa.last.y + (log.contentY - before));
-                        root.selectSpan(selMa.anchor, selMa.last);
+                    onPressed: m => {
+                        anchor = Qt.point(m.x, m.y);
+                        last = anchor;
+                        dragging = false;
+                        root.clearLogSelection();
+                    }
+                    onPositionChanged: m => {
+                        last = Qt.point(m.x, m.y);
+                        if (!dragging && Math.abs(m.x - anchor.x) + Math.abs(m.y - anchor.y) < 4) return;
+                        dragging = true;
+                        root.selectSpan(anchor, last);
+                    }
+                    onReleased: m => {
+                        if (!dragging) root.clickThrough(m.x, m.y);
+                        dragging = false;
+                    }
+                    onDoubleClicked: m => root.selectWordAt(m.x, m.y)
+                    // Dragging past the log's edge scrolls it, and the selection follows.
+                    Timer {
+                        interval: 30
+                        repeat: true
+                        running: selMa.dragging && selMa.pressed
+                        onTriggered: {
+                            const y = selMa.last.y - log.contentY + logCol.y;
+                            let dy = 0;
+                            if (y < 14) dy = -10;
+                            else if (y > log.height - 14) dy = 10;
+                            if (!dy) return;
+                            const before = log.contentY;
+                            log.contentY = Math.max(0, Math.min(log.contentHeight - log.height, log.contentY + dy));
+                            selMa.last = Qt.point(selMa.last.x, selMa.last.y + (log.contentY - before));
+                            root.selectSpan(selMa.anchor, selMa.last);
+                        }
                     }
                 }
             }
@@ -614,10 +653,10 @@ Item {
         ChatScrollbar {
             id: logBar
             flick: log
-            visible: log.visible && needed
-            x: log.x + log.width - width
-            y: log.y
-            height: log.height
+            visible: logClip.visible && needed
+            x: logClip.x + logClip.width - width
+            y: logClip.y
+            height: logClip.height
         }
 
         // .picker: provider chips, a rule, the chosen provider's models.

@@ -23,19 +23,26 @@ Rectangle {
     property color washNow: washTarget
     Behavior on washNow { ColorAnimation { duration: 300; easing.type: Easing.BezierSpline; easing.bezierCurve: C.RoboTheme.ease } }
 
+    // Port (performance): the wash is drawn once round its centre (w/2, 1.3 h)
+    // on a fixed canvas, as far as it shows (it is transparent past 0.7 × 280
+    // px, and the centre is below the card), and moved, whole pixels, with the
+    // card's size: it was redrawn at every frame of a card the island grows
+    // or shrinks (the chat page, the home chat under it).
     Canvas {
-        anchors.fill: parent
+        readonly property int half: 197
+        x: Math.round(card.width / 2) - half
+        y: Math.round(card.height * 1.3) - half
+        width: 2 * half
+        height: half
         visible: card.wash !== ""
         property color w: card.washNow
         onWChanged: requestPaint()
-        onWidthChanged: requestPaint()
-        onHeightChanged: requestPaint()
         onPaint: {
             const ctx = getContext("2d");
             ctx.reset();
             if (!card.wash) return;
             const col = w;
-            const cx = width / 2, cy = height * 1.3;
+            const cx = half, cy = half;
             // An ellipse 280×280 radius: a circle of radius 280, colour to 70 %.
             const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 280);
             g.addColorStop(0, col);

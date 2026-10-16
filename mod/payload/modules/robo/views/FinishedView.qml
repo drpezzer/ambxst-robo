@@ -229,7 +229,7 @@ Item {
                 x: mid.width - width
                 height: mid.height
                 opacity: body.opacity
-                visible: body.visible
+                visible: body.visible && bar.needed
             }
             }
             Item { width: 1; height: 2 * root.g }

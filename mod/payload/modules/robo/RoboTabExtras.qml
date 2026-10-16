@@ -20,6 +20,8 @@ Item {
     Component.onDestruction: if (root.islandItem && root.islandItem.island) root.islandItem.island.setExtraHover(false)
 
     readonly property real islandH: islandItem ? islandItem.islandH : 160
+    /** The height the island's spring is heading for (the home chat settles under it). */
+    readonly property real islandTargetH: islandItem ? islandItem.targetH : 160
     // The island's cards are 10 px in from its edges and end 10 px above its
     // bottom: the home chat keeps those gaps, the column starts level with
     // the header.
@@ -35,6 +37,7 @@ Item {
             y: root.islandH
             width: 640 - 20
             height: Math.max(0, root.height - y)
+            settledHeight: Math.max(0, root.height - root.islandTargetH)
             keyTarget: root.keyTarget
         }
     }

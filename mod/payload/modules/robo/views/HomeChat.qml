@@ -14,6 +14,8 @@ Item {
     readonly property var st: C.Robo.state
     readonly property string view: C.Robo.rev >= 0 ? st.view : ""
     readonly property bool on: C.Robo.rev >= 0 && st.mode === "expanded" && (view === "overview" || view === "empty")
+    /** Port: its height once the island above it stops moving (its log is laid out at it). */
+    property real settledHeight: height
     /** Where Escape hands the keyboard back (the tab). */
     property Item keyTarget: null
     /** The field has the keyboard. */
@@ -68,6 +70,7 @@ Item {
             active: root.chatReady
             sourceComponent: ChatPanel {
                 leftPad: 16
+                settledHeight: root.settledHeight
                 // The picker belongs to the home view it was opened in.
                 where: root.view === "empty" ? "empty" : "overview"
                 onEscaped: if (root.keyTarget) root.keyTarget.forceActiveFocus()

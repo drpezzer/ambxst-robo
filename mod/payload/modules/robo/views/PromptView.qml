@@ -9,6 +9,9 @@ import qs.modules.robo as C
 Item {
     id: root
     property bool viewOn: false
+    /** The size the island's views settle at (ViewSlot): the log is laid out at it while the island grows. */
+    property real settledWidth: width
+    property real settledHeight: height
 
     Component.onCompleted: C.Robo.registerView("prompt", root)
     Component.onDestruction: C.Robo.unregisterView("prompt", root)
@@ -25,6 +28,8 @@ Item {
             anchors.fill: parent
             leftPad: 84
             where: "prompt"
+            settledWidth: root.settledWidth
+            settledHeight: root.settledHeight
         }
     }
 }

@@ -24,6 +24,15 @@ no build, no service to set up.
   hook relay on every start (`AMBXST_ROBO_INSTALL_RELAY=1`).
 - Releases are built by GitHub Actions (`.github/workflows/release.yml`) and
   attached to each tag's release with `SHA256SUMS`.
+- **Smoother notch**: opening the notch onto a chat lays the conversation out
+  once, at its final size, instead of re-wrapping and re-scrolling it on every
+  frame of the spring; older messages fill in above without moving what you
+  see.
+- The finished popup no longer shows stray scrollbar arrows beside a short
+  answer.
+- GitHub card errors are logged once, with GitHub's own message, instead of
+  a bare count every 5 minutes.
+- README: a "reply at a glance" demo.
 - The manifest no longer requires `ambxst-robo` on `PATH` (a fresh system
   could not enable the mod), and declares that the mod installs its daemon.
   This update therefore asks for a review in Ambxst.

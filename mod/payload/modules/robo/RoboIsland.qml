@@ -71,11 +71,26 @@ Item {
     Component.onDestruction: if (live) { C.Robo.frameSources -= 1; C.Robo.fullRateSources -= 1; }
 
     property real islandW: 640
+    /**
+     * Port (performance): the size the island's spring is heading for. The
+     * views are laid out at it (ViewSlot.settledWidth/Height) while the island
+     * grows, so the chat log is not re-wrapped and re-scrolled every frame.
+     */
+    property real targetW: 640
+    property real targetH: 160
     function applyFrame() {
         const i = island;
         if (!i) return;
         islandW = i.width.value;
         islandH = i.height.value;
+        if (i.width.animating || i.height.animating) {
+            const t = i.targetSize();
+            targetW = i.width.animating ? t.w : islandW;
+            targetH = i.height.animating ? t.h : islandH;
+        } else {
+            targetW = islandW;
+            targetH = islandH;
+        }
         const b = i.bot;
         // Island coordinates are relative to the island's own left edge, which
         // upstream centres in the panel; here the island is a fixed 640 slot.
@@ -276,6 +291,8 @@ Item {
                 readonly property bool fillsTab: C.Robo.rev >= 0 && root.island !== null && root.island.chatFillHeight > 0
                     && C.Robo.state.mode === "expanded" && C.Robo.state.view === "prompt"
                 height: Math.max(0, parent.height - 42 - (fillsTab ? 0 : 10))
+                readonly property real settledWidth: root.targetW - 20
+                readonly property real settledHeight: Math.max(0, root.targetH - 42 - (fillsTab ? 0 : 10))
 
                 Repeater {
                     model: ["overview", "empty", "approval", "question", "error", "finished", "confused",
@@ -286,6 +303,8 @@ Item {
                         viewName: modelData
                         width: viewsArea.width
                         height: viewsArea.height
+                        settledWidth: viewsArea.settledWidth
+                        settledHeight: viewsArea.settledHeight
                     }
                 }
             }

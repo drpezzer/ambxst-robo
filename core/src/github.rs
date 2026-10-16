@@ -417,10 +417,70 @@ query {
 }
 "#;
 
-/// Number of GraphQL errors in a response, for the log (never their text: it
-/// can quote the query, not secrets, but there is no need for it).
-pub fn graphql_error_count(root: &Value) -> usize {
-    root.get("errors").and_then(Value::as_array).map(Vec::len).unwrap_or(0)
+/// The response's GraphQL errors as one log-safe line, or None when there are
+/// none: each error's type, message and path (list indices folded to `*`, so
+/// the same failure on another node reads the same). Anything shaped like a
+/// GitHub token is masked and each message is capped — the text comes from
+/// GitHub and never holds the request's token, but the log should not trust it.
+pub fn graphql_error_summary(root: &Value) -> Option<String> {
+    let errors = root.get("errors").and_then(Value::as_array).filter(|e| !e.is_empty())?;
+    let mut parts: Vec<String> = Vec::new();
+    for error in errors {
+        let kind = str_at(error, "type").unwrap_or("");
+        let message = str_at(error, "message").unwrap_or("(no message)");
+        let path = error
+            .get("path")
+            .and_then(Value::as_array)
+            .map(|p| {
+                p.iter()
+                    .map(|s| match s {
+                        Value::String(s) => s.clone(),
+                        _ => "*".to_string(),
+                    })
+                    .collect::<Vec<_>>()
+                    .join(".")
+            })
+            .unwrap_or_default();
+        let mut part = sanitize_log_text(message, 240);
+        if !kind.is_empty() {
+            part = format!("{} {part}", sanitize_log_text(kind, 40));
+        }
+        if !path.is_empty() {
+            part = format!("{part} (at {})", sanitize_log_text(&path, 120));
+        }
+        if !parts.contains(&part) {
+            parts.push(part);
+        }
+    }
+    let count = errors.len();
+    Some(format!("{count}: {}", parts.join("; ")))
+}
+
+/// One line, at most `max` chars, GitHub token shapes masked.
+fn sanitize_log_text(raw: &str, max: usize) -> String {
+    const PREFIXES: &[&str] = &["github_pat_", "ghp_", "gho_", "ghu_", "ghs_", "ghr_"];
+    let flat: String = raw.split_whitespace().collect::<Vec<_>>().join(" ");
+    let mut out = String::with_capacity(flat.len());
+    let mut rest = flat.as_str();
+    'scan: while !rest.is_empty() {
+        for prefix in PREFIXES {
+            if rest.starts_with(prefix) {
+                let len = rest
+                    .find(|c: char| !(c.is_ascii_alphanumeric() || c == '_'))
+                    .unwrap_or(rest.len());
+                out.push_str("[token]");
+                rest = &rest[len..];
+                continue 'scan;
+            }
+        }
+        let c = rest.chars().next().unwrap();
+        out.push(c);
+        rest = &rest[c.len_utf8()..];
+    }
+    if out.chars().count() > max {
+        out = out.chars().take(max).collect::<String>() + "…";
+    }
+    out
 }
 
 // ── Tests (GitHubPulseTests.swift, GitHubActivityTests.swift) ────────────────
@@ -792,8 +852,22 @@ mod tests {
     }
 
     #[test]
-    fn counts_graphql_errors() {
-        assert_eq!(graphql_error_count(&json!({"data": {}})), 0);
-        assert_eq!(graphql_error_count(&json!({"errors": [{}, {}]})), 2);
+    fn summarizes_graphql_errors_safely() {
+        assert_eq!(graphql_error_summary(&json!({"data": {}})), None);
+        assert_eq!(graphql_error_summary(&json!({"errors": []})), None);
+        let root = json!({"errors": [
+            {"type": "FORBIDDEN", "message": "Resource\nnot accessible by ghp_abc123XYZ token",
+             "path": ["viewer", "pullRequests", "nodes", 3, "repository"]},
+            {"type": "FORBIDDEN", "message": "Resource\nnot accessible by ghp_abc123XYZ token",
+             "path": ["viewer", "pullRequests", "nodes", 7, "repository"]},
+        ]});
+        let line = graphql_error_summary(&root).unwrap();
+        assert_eq!(
+            line,
+            "2: FORBIDDEN Resource not accessible by [token] token (at viewer.pullRequests.nodes.*.repository)"
+        );
+        assert!(!line.contains("abc123"));
+        let long = json!({"errors": [{"message": "x".repeat(1000)}]});
+        assert!(graphql_error_summary(&long).unwrap().chars().count() < 260);
     }
 }

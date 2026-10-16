@@ -358,6 +358,9 @@ struct GitHubLoops {
     activity_wake: Notify,
     pulse_busy: AtomicBool,
     activity_busy: AtomicBool,
+    /// Last GraphQL error line logged per query ("pulse", "activity"): the same
+    /// errors come back on every poll, so they are logged when they change only.
+    logged_errors: Mutex<Vec<(&'static str, String)>>,
 }
 
 static GITHUB: std::sync::LazyLock<GitHubLoops> = std::sync::LazyLock::new(|| GitHubLoops {
@@ -367,6 +370,7 @@ static GITHUB: std::sync::LazyLock<GitHubLoops> = std::sync::LazyLock::new(|| Gi
     activity_wake: Notify::new(),
     pulse_busy: AtomicBool::new(false),
     activity_busy: AtomicBool::new(false),
+    logged_errors: Mutex::new(Vec::new()),
 });
 
 fn now_ms() -> u64 {
@@ -418,9 +422,33 @@ fn spawn_github_loops(app: AppHandle) {
     });
 }
 
-/// One authenticated GraphQL call. Partial errors are logged (as a count) and the
-/// data parsed anyway; only a response without `data` is dropped.
-async fn github_graphql(token: &str, query: &str, what: &str) -> Option<Value> {
+/// Logs a query's GraphQL errors (sanitized) when they differ from the last
+/// ones logged for it, and once when they clear.
+fn log_graphql_errors(what: &'static str, summary: Option<String>) {
+    let mut logged = GITHUB.logged_errors.lock().unwrap();
+    let prev = logged.iter().position(|(w, _)| *w == what);
+    match (prev, summary) {
+        (Some(i), Some(line)) if logged[i].1 == line => {}
+        (Some(i), Some(line)) => {
+            log::line(format!("github {what} GraphQL errors {line}"));
+            logged[i].1 = line;
+        }
+        (None, Some(line)) => {
+            log::line(format!("github {what} GraphQL errors {line}"));
+            logged.push((what, line));
+        }
+        (Some(i), None) => {
+            log::line(format!("github {what} GraphQL errors cleared"));
+            logged.remove(i);
+        }
+        (None, None) => {}
+    }
+}
+
+/// One authenticated GraphQL call. Partial errors are logged (sanitized, when
+/// they change) and the data parsed anyway; only a response without `data` is
+/// dropped.
+async fn github_graphql(token: &str, query: &str, what: &'static str) -> Option<Value> {
     let response = client()
         .post("https://api.github.com/graphql")
         .header("Authorization", format!("Bearer {token}"))
@@ -438,10 +466,7 @@ async fn github_graphql(token: &str, query: &str, what: &str) -> Option<Value> {
         return None;
     }
     let root: Value = response.json().await.ok()?;
-    let errors = github::graphql_error_count(&root);
-    if errors > 0 {
-        log::line(format!("github {what} GraphQL errors: {errors}"));
-    }
+    log_graphql_errors(what, github::graphql_error_summary(&root));
     root.get("data").filter(|d| d.is_object())?;
     Some(root)
 }
@@ -529,6 +554,7 @@ pub fn github_refresh_if_stale(section: &str) {
 /// its requests still in flight, and fetch again right away.
 pub fn github_token_changed(app: &AppHandle) {
     GITHUB.generation.fetch_add(1, Ordering::SeqCst);
+    GITHUB.logged_errors.lock().unwrap().clear();
     let has_token = secrets::get("github-token").is_some();
     {
         let mut cache = GITHUB.cache.lock().unwrap();

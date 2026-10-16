@@ -38,6 +38,11 @@ Robo through a turn: thinking, working while a tool runs, talking while the answ
 
 ![Robo thinking, working, then talking during a turn](docs/media/robo-turn.gif)
 
+Reply at a glance: when a session finishes, its answer pops out of the closed notch. Hover to read
+all of it, then Reply sends your answer to that session's terminal, without opening the notch.
+
+![Replying to a finished session from its popup](docs/media/glance-reply.gif)
+
 The bar: Robo in place of the Ambxst logo, the other sessions as minis beside him. A
 session's helpers (subagents) show up as liquid blobs that pop when they finish.
 
