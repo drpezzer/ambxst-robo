@@ -1,0 +1,13 @@
+{
+  "name": "ambxst-robo",
+  "private": true,
+  "description": "Builds Ambxst Robo's QML library (lib/ -> mod/payload/modules/robo/robo-lib.js)",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "scripts": {
+    "build": "node lib/build.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12"
+  }
+}

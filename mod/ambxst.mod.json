@@ -1,0 +1,699 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Axenide/Ambxst/dev/docs/mods/manifest.schema.json",
+  "manifestVersion": 1,
+  "id": "drpezzer.ambxst-robo",
+  "name": "Ambxst Robo",
+  "version": "1.0.0",
+  "description": "Ambxst Robo in Ambxst's notch, a port of Coucou (Louis-CFM/coucou): Robo watches your AI coding agents, lets you approve and answer from the notch, chat, drop files and keep an eye on your services.",
+  "license": "AGPL-3.0-or-later",
+  "author": "drpezzer",
+  "compatibility": {
+    "api": 1,
+    "ambxst": ">=1.3.10 <2.0.0",
+    "testedBaseCommits": [
+      "bc60230283a3822eec2e23c949f44990480d0f43",
+      "1e1a56493582f34e5e5593bc9d3c2f87246266fb"
+    ]
+  },
+  "dependencies": [],
+  "conflicts": [],
+  "commands": [
+    "ambxst-robo"
+  ],
+  "permissions": [
+    "Talks to ambxst-robo (a user service) over $XDG_RUNTIME_DIR/ambxst-robo-core.sock",
+    "Takes over SUPER+A (`ambxst run assistant`) and the bar's logo",
+    "Opens the notch on its own for permission requests and questions, without taking the keyboard"
+  ],
+  "operations": [
+    {
+      "type": "patch",
+      "source": "patches/ambxst-robo.patch"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/annoyed.wav",
+      "target": "assets/robo/sounds/annoyed.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/approval.wav",
+      "target": "assets/robo/sounds/approval.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/approve.wav",
+      "target": "assets/robo/sounds/approve.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/attach.wav",
+      "target": "assets/robo/sounds/attach.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/blip.wav",
+      "target": "assets/robo/sounds/blip.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/close.wav",
+      "target": "assets/robo/sounds/close.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/dizzy.wav",
+      "target": "assets/robo/sounds/dizzy.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/error.wav",
+      "target": "assets/robo/sounds/error.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/finish.wav",
+      "target": "assets/robo/sounds/finish.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/greet.wav",
+      "target": "assets/robo/sounds/greet.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/greeting.wav",
+      "target": "assets/robo/sounds/greeting.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/gulp.wav",
+      "target": "assets/robo/sounds/gulp.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/hover.wav",
+      "target": "assets/robo/sounds/hover.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/love.wav",
+      "target": "assets/robo/sounds/love.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/open.wav",
+      "target": "assets/robo/sounds/open.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/peek.wav",
+      "target": "assets/robo/sounds/peek.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/pop.wav",
+      "target": "assets/robo/sounds/pop.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/proud.wav",
+      "target": "assets/robo/sounds/proud.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/question.wav",
+      "target": "assets/robo/sounds/question.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/rate.wav",
+      "target": "assets/robo/sounds/rate.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/search.wav",
+      "target": "assets/robo/sounds/search.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/send.wav",
+      "target": "assets/robo/sounds/send.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/slap.wav",
+      "target": "assets/robo/sounds/slap.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/sleep.wav",
+      "target": "assets/robo/sounds/sleep.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/think.wav",
+      "target": "assets/robo/sounds/think.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/tick.wav",
+      "target": "assets/robo/sounds/tick.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/wink.wav",
+      "target": "assets/robo/sounds/wink.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/work.wav",
+      "target": "assets/robo/sounds/work.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/assets/robo/sounds/yawn.wav",
+      "target": "assets/robo/sounds/yawn.wav"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/AnimClock.qml",
+      "target": "modules/robo/AnimClock.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/CText.qml",
+      "target": "modules/robo/CText.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/ColorWheel.qml",
+      "target": "modules/robo/ColorWheel.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/Icon.qml",
+      "target": "modules/robo/Icon.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/MiniBot.qml",
+      "target": "modules/robo/MiniBot.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/Robo.qml",
+      "target": "modules/robo/Robo.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/RoboDropArea.qml",
+      "target": "modules/robo/RoboDropArea.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/RoboIsland.qml",
+      "target": "modules/robo/RoboIsland.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/RoboTabExtras.qml",
+      "target": "modules/robo/RoboTabExtras.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/RoboTheme.qml",
+      "target": "modules/robo/RoboTheme.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/RoboViews.qml",
+      "target": "modules/robo/RoboViews.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/RobotPreview.qml",
+      "target": "modules/robo/RobotPreview.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/SwatchRow.qml",
+      "target": "modules/robo/SwatchRow.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/robo-lib.js",
+      "target": "modules/robo/robo-lib.js"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/desktop/DesktopMascotItem.qml",
+      "target": "modules/robo/desktop/DesktopMascotItem.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/desktop/NotchMascotProxy.qml",
+      "target": "modules/robo/desktop/NotchMascotProxy.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/desktop/RoboDesktop.qml",
+      "target": "modules/robo/desktop/RoboDesktop.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/AccentLabel.qml",
+      "target": "modules/robo/settings/AccentLabel.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/FlexRow.qml",
+      "target": "modules/robo/settings/FlexRow.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/ReviewBody.qml",
+      "target": "modules/robo/settings/ReviewBody.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/RoboSettings.qml",
+      "target": "modules/robo/settings/RoboSettings.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/RoboSettingsPage.qml",
+      "target": "modules/robo/settings/RoboSettingsPage.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/RoboSettingsWindow.qml",
+      "target": "modules/robo/settings/RoboSettingsWindow.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SButton.qml",
+      "target": "modules/robo/settings/SButton.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SColorDot.qml",
+      "target": "modules/robo/settings/SColorDot.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SDiff.qml",
+      "target": "modules/robo/settings/SDiff.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SDot.qml",
+      "target": "modules/robo/settings/SDot.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SHint.qml",
+      "target": "modules/robo/settings/SHint.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SInput.qml",
+      "target": "modules/robo/settings/SInput.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SKeycap.qml",
+      "target": "modules/robo/settings/SKeycap.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SLabel.qml",
+      "target": "modules/robo/settings/SLabel.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SNotice.qml",
+      "target": "modules/robo/settings/SNotice.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SPalette.qml",
+      "target": "modules/robo/settings/SPalette.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SPath.qml",
+      "target": "modules/robo/settings/SPath.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SSection.qml",
+      "target": "modules/robo/settings/SSection.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SSelect.qml",
+      "target": "modules/robo/settings/SSelect.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SSlider.qml",
+      "target": "modules/robo/settings/SSlider.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SSwitch.qml",
+      "target": "modules/robo/settings/SSwitch.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/STag.qml",
+      "target": "modules/robo/settings/STag.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SText.qml",
+      "target": "modules/robo/settings/SText.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SecAgents.qml",
+      "target": "modules/robo/settings/SecAgents.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SecApi.qml",
+      "target": "modules/robo/settings/SecApi.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SecChat.qml",
+      "target": "modules/robo/settings/SecChat.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SecClaude.qml",
+      "target": "modules/robo/settings/SecClaude.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SecGeneral.qml",
+      "target": "modules/robo/settings/SecGeneral.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SecIntegrations.qml",
+      "target": "modules/robo/settings/SecIntegrations.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SecLocal.qml",
+      "target": "modules/robo/settings/SecLocal.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SecPills.qml",
+      "target": "modules/robo/settings/SecPills.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SecPlan.qml",
+      "target": "modules/robo/settings/SecPlan.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SecShortcuts.qml",
+      "target": "modules/robo/settings/SecShortcuts.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SecStyle.qml",
+      "target": "modules/robo/settings/SecStyle.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/SettingsTheme.qml",
+      "target": "modules/robo/settings/SettingsTheme.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/settings/Spacer.qml",
+      "target": "modules/robo/settings/Spacer.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/shell/RoboBar.qml",
+      "target": "modules/robo/shell/RoboBar.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/shell/RoboMedia.qml",
+      "target": "modules/robo/shell/RoboMedia.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/shell/RoboShell.qml",
+      "target": "modules/robo/shell/RoboShell.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/shell/RoboTab.qml",
+      "target": "modules/robo/shell/RoboTab.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/ApprovalFold.qml",
+      "target": "modules/robo/views/ApprovalFold.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/ApprovalView.qml",
+      "target": "modules/robo/views/ApprovalView.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/ApprovalWho.qml",
+      "target": "modules/robo/views/ApprovalWho.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/BidiText.qml",
+      "target": "modules/robo/views/BidiText.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/Btn.qml",
+      "target": "modules/robo/views/Btn.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/Card.qml",
+      "target": "modules/robo/views/Card.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/ChatMarkdown.qml",
+      "target": "modules/robo/views/ChatMarkdown.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/ChatPanel.qml",
+      "target": "modules/robo/views/ChatPanel.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/ChatPlaceholder.qml",
+      "target": "modules/robo/views/ChatPlaceholder.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/ChatRow.qml",
+      "target": "modules/robo/views/ChatRow.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/ChatScrollbar.qml",
+      "target": "modules/robo/views/ChatScrollbar.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/ChooseView.qml",
+      "target": "modules/robo/views/ChooseView.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/ConfusedView.qml",
+      "target": "modules/robo/views/ConfusedView.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/ConvDrag.qml",
+      "target": "modules/robo/views/ConvDrag.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/DiffCard.qml",
+      "target": "modules/robo/views/DiffCard.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/Dot.qml",
+      "target": "modules/robo/views/Dot.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/EmptyView.qml",
+      "target": "modules/robo/views/EmptyView.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/ErrorView.qml",
+      "target": "modules/robo/views/ErrorView.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/FinishedView.qml",
+      "target": "modules/robo/views/FinishedView.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/Header.qml",
+      "target": "modules/robo/views/Header.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/HistoryColumn.qml",
+      "target": "modules/robo/views/HistoryColumn.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/HomeChat.qml",
+      "target": "modules/robo/views/HomeChat.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/IntFlexRow.qml",
+      "target": "modules/robo/views/IntFlexRow.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/IntegrationCard.qml",
+      "target": "modules/robo/views/IntegrationCard.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/LinkBtn.qml",
+      "target": "modules/robo/views/LinkBtn.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/MailView.qml",
+      "target": "modules/robo/views/MailView.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/NoteView.qml",
+      "target": "modules/robo/views/NoteView.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/OverviewView.qml",
+      "target": "modules/robo/views/OverviewView.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/Pill.qml",
+      "target": "modules/robo/views/Pill.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/PlanCard.qml",
+      "target": "modules/robo/views/PlanCard.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/PlanPills.qml",
+      "target": "modules/robo/views/PlanPills.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/PromptView.qml",
+      "target": "modules/robo/views/PromptView.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/QuestionView.qml",
+      "target": "modules/robo/views/QuestionView.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/RecapView.qml",
+      "target": "modules/robo/views/RecapView.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/ResultView.qml",
+      "target": "modules/robo/views/ResultView.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/SearchingView.qml",
+      "target": "modules/robo/views/SearchingView.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/SettingsSwitch.qml",
+      "target": "modules/robo/views/SettingsSwitch.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/SettingsView.qml",
+      "target": "modules/robo/views/SettingsView.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/SpotifyCard.qml",
+      "target": "modules/robo/views/SpotifyCard.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/SpotifyPill.qml",
+      "target": "modules/robo/views/SpotifyPill.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/TickerCard.qml",
+      "target": "modules/robo/views/TickerCard.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/TickerRow.qml",
+      "target": "modules/robo/views/TickerRow.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/UploadLayer.qml",
+      "target": "modules/robo/views/UploadLayer.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/UploadView.qml",
+      "target": "modules/robo/views/UploadView.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/UploadingView.qml",
+      "target": "modules/robo/views/UploadingView.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/ViewSlot.qml",
+      "target": "modules/robo/views/ViewSlot.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/WardrobeView.qml",
+      "target": "modules/robo/views/WardrobeView.qml"
+    }
+  ]
+}

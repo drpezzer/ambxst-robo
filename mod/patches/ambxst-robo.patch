@@ -1,0 +1,387 @@
+diff --git a/modules/bar/BarContent.qml b/modules/bar/BarContent.qml
+index 554a38fc..68b71858 100644
+--- a/modules/bar/BarContent.qml
++++ b/modules/bar/BarContent.qml
+@@ -18,6 +18,7 @@ import qs.modules.globals
+ import qs.modules.bar
+ import qs.config
+ import "." as Bar
++import qs.modules.robo.shell // ambxst-robo
+ 
+ Item {
+     id: root
+@@ -373,11 +374,23 @@ Item {
+ 
+                         LauncherButton {
+                             id: launcherButton
++                            visible: RoboShell.quitted // ambxst-robo: Robo takes the logo's place (back after Quit)
+                             startRadius: root.outerRadius
+                             endRadius: root.innerRadius
+                             enableShadow: root.shadowsEnabled
+                         }
+ 
++                        // ambxst-robo: the mascot and the mini mascots, where the logo was.
++                        RoboBar {
++                            visible: !RoboShell.quitted && !RoboShell.barTestHidden
++                            barShown: root.fsProgress
++                            startRadius: root.outerRadius
++                            endRadius: root.innerRadius
++                            enableShadow: root.shadowsEnabled
++                            Layout.preferredWidth: implicitWidth
++                            Layout.preferredHeight: 36
++                        }
++
+                         Workspaces {
+                             orientation: root.orientation
+                             bar: QtObject {
+@@ -571,6 +584,7 @@ Item {
+ 
+                         LauncherButton {
+                             id: launcherButtonVert
++                            visible: RoboShell.quitted // ambxst-robo: Robo takes the logo's place (back after Quit)
+                             Layout.preferredHeight: 36
+                             startRadius: root.outerRadius
+                             endRadius: root.innerRadius
+@@ -578,6 +592,18 @@ Item {
+                             enableShadow: root.shadowsEnabled
+                         }
+ 
++                        // ambxst-robo: the mascot on top, the mini mascots below him.
++                        RoboBar {
++                            visible: !RoboShell.quitted && !RoboShell.barTestHidden
++                            barShown: root.fsProgress
++                            vertical: true
++                            startRadius: root.outerRadius
++                            endRadius: root.innerRadius
++                            enableShadow: root.shadowsEnabled
++                            Layout.preferredWidth: 36
++                            Layout.preferredHeight: implicitHeight
++                        }
++
+                         SysTray {
+                             bar: root
+                             enableShadow: root.shadowsEnabled
+diff --git a/modules/services/GlobalShortcuts.qml b/modules/services/GlobalShortcuts.qml
+index b1aa3be4..96a74ffc 100644
+--- a/modules/services/GlobalShortcuts.qml
++++ b/modules/services/GlobalShortcuts.qml
+@@ -5,6 +5,7 @@ import QtQuick
+ import qs.modules.globals
+ import qs.modules.services
+ import qs.config
++import qs.modules.robo.shell // ambxst-robo
+ 
+ import Quickshell.Io
+ 
+@@ -48,6 +49,7 @@ QtObject {
+             case "dashboard": toggleDashboardTab(0); break;
+             case "wallpapers": toggleDashboardTab(1); break;
+             case "assistant": toggleAssistant(); break;
++            case "ambxst-robo": RoboShell.toggle(); break; // ambxst-robo
+             case "dashboard-widgets": toggleDashboardTab(0); break;
+             case "dashboard-wallpapers": toggleDashboardTab(1); break;
+             case "dashboard-kanban": toggleDashboardTab(2); break;
+@@ -242,6 +244,11 @@ QtObject {
+     }
+ 
+     function toggleAssistant() {
++        // ambxst-robo: SUPER+A (`ambxst run assistant`) opens Robo in the notch.
++        if (RoboShell !== undefined) {
++            RoboShell.toggle();
++            return;
++        }
+         GlobalStates.toggleAssistant();
+     }
+     function seekActivePlayer(offset) {
+diff --git a/modules/shell/UnifiedShellPanel.qml b/modules/shell/UnifiedShellPanel.qml
+index 786c98e6..661dfc93 100644
+--- a/modules/shell/UnifiedShellPanel.qml
++++ b/modules/shell/UnifiedShellPanel.qml
+@@ -12,6 +12,8 @@ import qs.modules.globals
+ import qs.modules.components
+ import qs.config
+ import qs.modules.sidebar
++import qs.modules.robo.shell // ambxst-robo
++import qs.modules.robo.desktop as RoboDesktop // ambxst-robo
+ 
+ PanelWindow {
+     id: unifiedPanel
+@@ -31,6 +33,16 @@ PanelWindow {
+     // Dynamic keyboard focus: Exclusive when a notch module is open (so text fields work),
+     // None otherwise (so compositor receives normal input).
+     WlrLayershell.keyboardFocus: {
++        // ambxst-robo: the notch Robo opened on its own (a permission request, a
++        // question…) leaves the keyboard where it was, as Coucou's island does,
++        // except while the pointer is over the island (Y / N, typing an answer).
++        if (unifiedPanel.roboPassive) {
++            // ambxst-robo: a held-open page (the chat page, so a file can be dragged
++            // in from another window) keeps the keyboard a click gives it.
++            if (RoboShell.hoverKeys)
++                return WlrKeyboardFocus.Exclusive;
++            return RoboShell.holdOpen ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None;
++        }
+         if (notchContent.screenNotchOpen) {
+             return WlrKeyboardFocus.Exclusive;
+         }
+@@ -159,6 +171,39 @@ PanelWindow {
+         }
+     }
+ 
++    // ambxst-robo: a passive Robo notch catches no clicks outside itself either:
++    // no full-screen input region, no backdrop, no focus grab.
++    readonly property bool roboPassive: (RoboShell.passive || RoboShell.holdOpen) && notchContent.screenNotchOpen && RoboShell.shown
++    Binding {
++        target: unifiedPanel.mask
++        property: "item"
++        value: null
++        when: unifiedPanel.roboPassive
++    }
++    Binding {
++        target: backdropArea
++        property: "visible"
++        value: false
++        when: unifiedPanel.roboPassive
++    }
++    Binding {
++        target: focusGrab
++        property: "active"
++        value: false
++        when: unifiedPanel.roboPassive
++    }
++
++    // ambxst-robo: the desktop mascot's way in while this panel has the keyboard
++    // (Hyprland then gives it every pointer event) + where the notch is.
++    RoboDesktop.NotchMascotProxy {
++        anchors.fill: parent
++        z: 100
++        desktop: RoboShell.desktop
++        screenName: unifiedPanel.targetScreen ? unifiedPanel.targetScreen.name : ""
++        notchItem: notchContent.notchHitbox
++        exclusive: unifiedPanel.WlrLayershell.keyboardFocus === WlrKeyboardFocus.Exclusive
++    }
++
+     // ═══════════════════════════════════════════════════════════════
+     // CLICK-OUTSIDE BACKDROP
+     // ═══════════════════════════════════════════════════════════════
+diff --git a/modules/widgets/config/AiPanel.qml b/modules/widgets/config/AiPanel.qml
+index c6f4df7c..82fc0ebc 100644
+--- a/modules/widgets/config/AiPanel.qml
++++ b/modules/widgets/config/AiPanel.qml
+@@ -6,6 +6,8 @@ import qs.modules.theme
+ import qs.modules.components
+ import qs.modules.services
+ import qs.config
++import qs.modules.robo as C // ambxst-robo
++import qs.modules.robo.settings as CS // ambxst-robo
+ 
+ Item {
+     id: root
+@@ -14,17 +16,80 @@ Item {
+     readonly property int contentWidth: Math.min(width, maxContentWidth)
+     readonly property real sideMargin: Math.max(0, (width - contentWidth) / 2)
+ 
+-    Flickable {
++    // ambxst-robo: the AI tab is Robo's settings and Ambxst's AI keys, all in one
++    // place, in four tabs: Agents (Claude Code, other agents and CLIs, their
++    // keys, the chat's providers, and Ambxst's own AI providers last),
++    // Integrations (websites), General (pills, general, shortcuts), Style
++    // (theme colours, mascot). Robo's gear and its "Open Settings" links land
++    // here (settings/RoboSettings.qml), on the tab and section they name.
++    property string roboPane: "agents"
++    readonly property int roboTop: 56
++    Connections {
++        target: C.Robo
++        function onSettingsRequestChanged() { root.roboShowRequest(); }
++    }
++    function roboShowRequest() {
++        const want = C.Robo.settingsRequest.section;
++        if (want && roboPage.paneFor(want)) root.roboPane = roboPage.paneFor(want);
++        roboPage.reload().then(() => { if (want) Qt.callLater(() => roboPage.scrollTo(want)); });
++    }
++    Row {
++        id: roboSwitch
++        z: 2
++        x: root.sideMargin
++        y: 14
++        spacing: 6
++        Repeater {
++            model: [{ label: "Agents", pane: "agents" }, { label: "Integrations", pane: "integrations" },
++                    { label: "General", pane: "general" }, { label: "Style", pane: "style" }]
++            delegate: Rectangle {
++                required property var modelData
++                readonly property bool on: root.roboPane === modelData.pane
++                width: paneLabel.implicitWidth + 28
++                height: 30
++                radius: 15
++                color: on ? Colors.primary : (paneMa.containsMouse ? Colors.surfaceBright : Colors.surface)
++                Text {
++                    id: paneLabel
++                    anchors.centerIn: parent
++                    text: parent.modelData.label
++                    font.family: Config.theme.font
++                    font.pixelSize: 13
++                    font.weight: Font.DemiBold
++                    color: parent.on ? Colors.overPrimary : Colors.overSurface
++                }
++                MouseArea {
++                    id: paneMa
++                    anchors.fill: parent
++                    hoverEnabled: true
++                    cursorShape: Qt.PointingHandCursor
++                    onClicked: root.roboPane = parent.modelData.pane
++                }
++            }
++        }
++    }
++    CS.RoboSettingsPage {
++        id: roboPage
++        embedded: true
++        pane: root.roboPane
++        onPaneChanged: if (pane !== root.roboPane) root.roboPane = pane
++        agentsExtra: ambxstProviders
+         anchors.fill: parent
+-        contentHeight: contentColumn.implicitHeight + 40
+-        clip: true
+-        bottomMargin: 40
++        anchors.topMargin: root.roboTop
++        Component.onCompleted: {
++            C.Robo.settingsPage = roboPage;
++            root.roboShowRequest();
++        }
++        Component.onDestruction: if (C.Robo.settingsPage === roboPage) C.Robo.settingsPage = null
++    }
++
++    // ambxst-robo: Ambxst's AI providers, the last section of the Agents tab (the
++    // page's agentsExtra slot) instead of a page of their own.
++    Component {
++        id: ambxstProviders
+ 
+         ColumnLayout {
+             id: contentColumn
+-            width: root.contentWidth
+-            x: root.sideMargin
+-            y: 20
+             spacing: 24
+ 
+             Text {
+diff --git a/modules/widgets/dashboard/Dashboard.qml b/modules/widgets/dashboard/Dashboard.qml
+index 6b60935c..2778403b 100644
+--- a/modules/widgets/dashboard/Dashboard.qml
++++ b/modules/widgets/dashboard/Dashboard.qml
+@@ -11,6 +11,7 @@ import qs.modules.widgets.dashboard.widgets
+ import qs.modules.widgets.dashboard.controls
+ import qs.modules.widgets.dashboard.wallpapers
+ import qs.modules.widgets.dashboard.metrics
++import qs.modules.robo.shell // ambxst-robo
+ import qs.config
+ 
+ NotchAnimationBehavior {
+@@ -33,6 +34,32 @@ NotchAnimationBehavior {
+     implicitWidth: nonAnimWidth
+     implicitHeight: 430
+ 
++    // ambxst-robo: adds the Robo tab after whatever tabs exist when this Dashboard
++    // completes (the built-in ones and any mod's added the same way), so its
++    // index is taken, not claimed. The tab list and count are readonly: the
++    // list is grown in place and its change signal raised by hand. The
++    // highlight's position bindings are replaced because the stock
++    // getYForIndex parks anything past the third tab on the controls button.
++    // The tab keeps the dashboard's own size (DashboardView, 900 x 344: a
++    // content area of 834 x 344 for the island and its extras).
++    // This runs before the Dashboard's own Component.onCompleted, so a pending
++    // SUPER+A (sent before any Dashboard existed) lands on the tab.
++    QtObject {
++        Component.onCompleted: {
++            const index = root.tabModel.length;
++            root.tabModel.push(Icons.robot);
++            root.tabModelChanged();
++            RoboShell.dashboardTab = index;
++            const yFor = idx => idx < root.tabCount ? idx * (tabHighlight.width + root.tabSpacing) : controlsButtonContainer.y;
++            tabHighlight.targetY1 = Qt.binding(() => yFor(tabHighlight.idx1));
++            tabHighlight.targetY2 = Qt.binding(() => yFor(tabHighlight.idx2));
++            if (RoboShell.openPending) {
++                RoboShell.openPending = false;
++                GlobalStates.dashboardCurrentTab = index;
++            }
++        }
++    }
++
+     // Track which tabs have been loaded (for lazy loading)
+     property var loadedTabs: ({0: true}) // Tab 0 (widgets) loaded by default
+ 
+@@ -461,6 +488,27 @@ NotchAnimationBehavior {
+                     sourceComponent: metricsComponent
+                     z: visible ? 1 : 0
+                 }
++
++                // ambxst-robo: its tab, at the index taken above (-1 until then,
++                // which matches no tab).
++                TabLoader {
++                    property int index: RoboShell.dashboardTab
++                    sourceComponent: roboComponent
++                    z: visible ? 1 : 0
++                    // Kept while the dashboard is open, whatever tab shows:
++                    // with dashboardPersistTabs off it was torn down and
++                    // rebuilt at every tab switch (a visible hitch). Released
++                    // with the dashboard, as the persistence setting wants.
++                    // Only on the screen it opens on: every screen's dashboard
++                    // follows the one open flag, and each built a whole Robo
++                    // tab (island, chat, column) at every open, in the frames
++                    // the notch starts opening in. Once built it stays until
++                    // the dashboard closes (moved to another screen, this one
++                    // still fades out).
++                    property bool here: false
++                    active: index >= 0 && (root.isVisible || root.shouldTabBeLoaded(index)) && (here || RoboShell.dashboardOn(root.screenName))
++                    onActiveChanged: here = active
++                }
+                 
+                 // Helper to access current item for focus
+                 property var currentItem: {
+@@ -593,4 +641,10 @@ NotchAnimationBehavior {
+         id: wallpapersComponent
+         WallpapersTab {}
+     }
++
++    // ambxst-robo
++    Component {
++        id: roboComponent
++        RoboTab {}
++    }
+ }
+diff --git a/modules/widgets/dashboard/DashboardView.qml b/modules/widgets/dashboard/DashboardView.qml
+index 9ec7030c..02b6127e 100644
+--- a/modules/widgets/dashboard/DashboardView.qml
++++ b/modules/widgets/dashboard/DashboardView.qml
+@@ -1,19 +1,29 @@
+ import QtQuick
+ import qs.modules.widgets.dashboard
+ import qs.modules.services
++import qs.modules.robo.shell // ambxst-robo
+ 
+ Item {
+     id: root
+ 
+-    implicitWidth: 900
+-    implicitHeight: 56 + 48 * 6
++    // ambxst-robo: an alert Robo raised itself (a session finished, a permission,
++    // a question) shows just its island, the mascot box, not the dashboard:
++    // the notch takes the island's size and the rest is clipped away.
++    readonly property bool roboCompact: RoboShell.compactShown
++    implicitWidth: roboCompact ? RoboShell.compactWidth : 900
++    implicitHeight: roboCompact ? RoboShell.compactHeight : 56 + 48 * 6
++    clip: roboCompact
+     property string screenName: ""
+ 
+     readonly property int leftPanelWidth: 270
+ 
+     Dashboard {
+         id: dashboardItem
+-        anchors.fill: parent
++        // ambxst-robo: compact, the tab rail (tabs 48 + 8 + separator 2 + 8) sits
++        // left of the view, so the Robo tab's island lands at its top-left.
++        x: root.roboCompact ? -(dashboardItem.tabWidth + 18) : 0
++        width: 900
++        height: 56 + 48 * 6
+         leftPanelWidth: root.leftPanelWidth
+         screenName: root.screenName
+ 

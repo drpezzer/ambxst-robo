@@ -1,0 +1,41 @@
+[workspace]
+members = [".", "hook"]
+default-members = [".", "hook"]
+resolver = "2"
+
+[workspace.package]
+version = "1.0.0"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+
+[package]
+name = "ambxst-robo"
+description = "Ambxst Robo: a headless daemon for Ambxst (a Linux port of Coucou's backend, without Tauri)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "ambxst-robo"
+path = "src/main.rs"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+tokio = { version = "1", features = ["net", "io-util", "sync", "time", "rt", "rt-multi-thread", "macros", "signal", "process"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+# Secret Service (GNOME Keyring, KWallet) over D-Bus — same service/account names as Coucou.
+keyring = { version = "3", features = ["sync-secret-service", "crypto-rust"] }
+libc = "0.2"
+qrcode = { version = "0.14", default-features = false }
+# The Spotify pill over MPRIS (spotify.rs) and "Open terminal" through KWin (platform/linux_focus.rs).
+dbus = "0.9.12"
+# EWMH on X11 for "Open terminal".
+x11rb = { version = "0.13", default-features = false }
+
+# The hook relay must start fast (Claude Code spawns it on every event).
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true

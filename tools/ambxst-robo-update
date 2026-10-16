@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# Install a freshly built ambxst-robo (and its hook relay) and restart it once
+# nothing is in flight: no Robo chat turn running (a `claude -p` child of
+# ambxst-robo) — so an update never cuts off the chat you are typing in.
+# help: install + restart ambxst-robo when no Robo chat turn is running
+#
+#   ambxst-robo-update [release dir]     default core/target/release next to this script
+#   ambxst-robo-update --now [dir]       restart without waiting
+#
+# Run it detached when the caller is itself a chat turn (Claude in Robo):
+#   systemd-run --user --collect --unit ambxst-robo-update ambxst-robo-update
+#
+# Install: install -Dm755 tools/ambxst-robo-update ~/.local/bin/ambxst-robo-update
+set -euo pipefail
+
+now=0
+if [[ ${1:-} == --now ]]; then now=1; shift; fi
+src=${1:-$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)/core/target/release}
+bin=$HOME/.local/bin
+
+for f in ambxst-robo ambxst-robo-hook; do
+    [[ -x $src/$f ]] || { echo "missing $src/$f" >&2; exit 1; }
+    # A new inode: the running binary is left alone ("text file busy" otherwise).
+    install -m755 "$src/$f" "$bin/.$f.new"
+    mv -f "$bin/.$f.new" "$bin/$f"
+done
+
+if (( ! now )); then
+    deadline=$(( $(date +%s) + 7200 ))
+    while :; do
+        pid=$(systemctl --user show -p MainPID --value ambxst-robo.service)
+        [[ $pid == 0 ]] && break
+        # Running children only: a finished helper not reaped yet is no turn.
+        ps --ppid "$pid" -o stat= | grep -qv '^Z' || break
+        (( $(date +%s) < deadline )) || { echo "still busy after 2 h, giving up" >&2; exit 1; }
+        sleep 3
+    done
+fi
+
+# AMBXST_ROBO_INSTALL_RELAY=1 in the unit refreshes ~/.local/share/ambxst-robo/bin/ambxst-robo-hook.
+systemctl --user restart ambxst-robo.service
+echo "ambxst-robo restarted"

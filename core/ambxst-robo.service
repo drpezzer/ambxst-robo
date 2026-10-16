@@ -1,0 +1,26 @@
+# ambxst-robo — Ambxst Robo's backend daemon (a Linux/Ambxst port of Coucou).
+# NOT installed. To install:
+#   install -Dm755 target/release/ambxst-robo ~/.local/bin/ambxst-robo
+#   install -Dm755 target/release/ambxst-robo-hook ~/.local/bin/ambxst-robo-hook
+#   cp ambxst-robo.service ~/.config/systemd/user/ && systemctl --user daemon-reload
+#   systemctl --user enable --now ambxst-robo.service
+# Coming from the coucou-core port: `ambxst-robo --migrate-from-coucou --dry-run`,
+# then the same without --dry-run (copies, never moves or deletes). Its sockets
+# ($XDG_RUNTIME_DIR/ambxst-robo.sock for the relay, ambxst-robo-core.sock for the
+# shell) are not Coucou's, so the upstream Coucou app can run beside it.
+[Unit]
+Description=Ambxst Robo daemon (hooks, approvals, chat, integrations)
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/ambxst-robo
+Restart=on-failure
+RestartSec=2
+# Uncomment to let it update ~/.local/share/ambxst-robo/bin/ambxst-robo-hook from the
+# ambxst-robo-hook next to the binary, as the Tauri app does at launch.
+#Environment=AMBXST_ROBO_INSTALL_RELAY=1
+
+[Install]
+WantedBy=graphical-session.target

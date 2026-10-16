@@ -1,0 +1,17 @@
+Coucou (https://github.com/Louis-CFM/coucou), MIT, Copyright (c) 2026 Louis Raillé
+(see LICENSE here). Commit 0dffbafcc0014d29e3e4af6fe9ba3a4ca063e105, windows/src.
+
+src/ holds only the files Ambxst Robo's public build uses, under their
+upstream paths. Upstream's directory for its own mascot is not here: the
+imports of it read mascot/<name>, and lib/build.mjs maps them to lib/public/.
+All the files are patched for the port:
+  - the names the port's code shares with them (state, settings keys, core
+    commands, events) say "mascot", and so do the labels and comments that
+    named upstream's mascot ("your mascot", "the mascot");
+  - upload/canvas.ts: the mascot's body, eyes and slot are cut out, Robo or
+    Axenide (lib/robot/upload.ts) draw themselves there;
+  - recap/share.ts: the recap image's title and footer are Ambxst Robo's and
+    it draws the mascot (lib/public/share.ts);
+  - core/bridge.ts: log lines say [ambxst-robo].
+tsconfig.json is upstream's windows/tsconfig.json (esbuild reads its
+compiler options for these files).
