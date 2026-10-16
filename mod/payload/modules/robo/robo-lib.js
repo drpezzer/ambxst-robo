@@ -19416,6 +19416,22 @@ ${t("Middle-click to copy the path")}` : "");
     g.addColorStop(1, lit2(0.75, 0.55));
     return g;
   }
+  function greetArms() {
+    var _a3;
+    if (isAmbxst()) {
+      const c = coloursFor((_a3 = island) == null ? void 0 : _a3.engine.bodyColor);
+      const rgb3 = (v) => `rgb(${v.map(Math.round).join(",")})`;
+      return { kind: "ambxst", top: rgb3(c.top), mid: rgb3(c.mid), bottom: rgb3(c.bottom) };
+    }
+    if (!isRobo()) return null;
+    const look2 = mainLook();
+    const pal = palette(look2.shell, look2.trim, look2.screen);
+    const lit2 = (m) => (nx, ny, nz) => {
+      const l = Math.hypot(nx, ny, nz) || 1;
+      return css(radiance(m, nx / l, ny / l, nz / l));
+    };
+    return { kind: "robo", shape: look2.shape, shell: lit2(pal.shell), trim: lit2(pal.trim) };
+  }
 
   // lib/public/greeting.ts
   var T = {
@@ -19739,20 +19755,195 @@ ${t("Middle-click to copy the path")}` : "");
     var _a3;
     return (_a3 = greetMetal(x, x0, y0, x1, y1)) != null ? _a3 : "rgb(200,204,212)";
   }
-  function drawHandL(x, hw, hh, p) {
+  var KEY2 = (() => {
+    const l = Math.hypot(0.5, 0.78);
+    return { x: -0.5 / l, y: -0.78 / l };
+  })();
+  function partOutline(x, w, h2, shape) {
+    const m = Math.min(w, h2);
+    if (shape === "hexagon") {
+      const c = m * 0.32;
+      x.moveTo(-w / 2 + c, -h2 / 2);
+      x.lineTo(w / 2 - c, -h2 / 2);
+      x.lineTo(w / 2, -h2 / 2 + c);
+      x.lineTo(w / 2, h2 / 2 - c);
+      x.lineTo(w / 2 - c, h2 / 2);
+      x.lineTo(-w / 2 + c, h2 / 2);
+      x.lineTo(-w / 2, h2 / 2 - c);
+      x.lineTo(-w / 2, -h2 / 2 + c);
+      x.closePath();
+      return;
+    }
+    const r = shape === "circle" ? m / 2 : shape === "square" ? m * 0.18 : m * 0.28;
+    x.roundRect(-w / 2, -h2 / 2, w, h2, r);
+  }
+  function roboPart(x, w, h2, theta, a, metal = "shell") {
+    if (w < 0.3 || h2 < 0.3) return;
+    const lit2 = a[metal];
+    const c = Math.cos(theta);
+    const s = Math.sin(theta);
+    const lx = KEY2.x * c + KEY2.y * s;
+    const ly = -KEY2.x * s + KEY2.y * c;
+    const ext = Math.abs(lx) * (w / 2) + Math.abs(ly) * (h2 / 2);
+    const g = x.createLinearGradient(lx * ext, ly * ext, -lx * ext, -ly * ext);
+    g.addColorStop(0, lit2(KEY2.x * 0.75, KEY2.y * 0.75, 0.6));
+    g.addColorStop(0.3, lit2(KEY2.x * 0.2, KEY2.y * 0.2, 1));
+    g.addColorStop(0.72, lit2(-KEY2.x * 0.35, -KEY2.y * 0.35, 0.9));
+    g.addColorStop(1, lit2(-KEY2.x * 0.8, -KEY2.y * 0.8, 0.45));
+    x.beginPath();
+    partOutline(x, w, h2, a.shape);
+    x.fillStyle = g;
+    x.fill();
+    const m = Math.min(w, h2);
+    const d = Math.max(0.5, m * 0.13);
+    const big = Math.max(w, h2) * 2;
+    x.save();
+    x.beginPath();
+    partOutline(x, w, h2, a.shape);
+    x.clip();
+    for (const [k, style] of [[1, "rgba(255,255,255,0.32)"], [-1, "rgba(0,0,0,0.22)"]]) {
+      x.beginPath();
+      x.rect(-big, -big, 2 * big, 2 * big);
+      x.save();
+      x.translate(-lx * d * k, -ly * d * k);
+      partOutline(x, w, h2, a.shape);
+      x.restore();
+      x.fillStyle = style;
+      x.fill("evenodd");
+    }
+    x.restore();
+    x.beginPath();
+    partOutline(x, w, h2, a.shape);
+    x.strokeStyle = "rgba(0,0,0,0.38)";
+    x.lineWidth = Math.max(0.5, m * 0.07);
+    x.stroke();
+  }
+  function roboBolt(x, cx, cy, r, a) {
+    if (r < 0.3) return;
+    const g = x.createRadialGradient(cx + KEY2.x * r * 0.4, cy + KEY2.y * r * 0.4, r * 0.05, cx, cy, r);
+    g.addColorStop(0, a.trim(KEY2.x * 0.5, KEY2.y * 0.5, 0.85));
+    g.addColorStop(0.55, a.trim(0, 0, 1));
+    g.addColorStop(1, a.trim(-KEY2.x * 0.7, -KEY2.y * 0.7, 0.35));
+    x.beginPath();
+    x.arc(cx, cy, r, 0, Math.PI * 2);
+    x.fillStyle = g;
+    x.fill();
+    x.strokeStyle = "rgba(0,0,0,0.4)";
+    x.lineWidth = Math.max(0.5, r * 0.18);
+    x.stroke();
+  }
+  function roboBar(x, ax, ay, bx, by, w, over, a) {
+    const len = Math.hypot(bx - ax, by - ay);
+    const th = Math.atan2(by - ay, bx - ax);
+    x.save();
+    x.translate((ax + bx) / 2, (ay + by) / 2);
+    x.rotate(th);
+    roboPart(x, len + 2 * over, w, th, a);
+    x.restore();
+  }
+  function roboGripper(x, cx, cy, r, th, a) {
+    x.save();
+    x.translate(cx, cy);
+    x.rotate(th);
+    for (const side of [-1, 1]) {
+      x.save();
+      x.translate(r * 0.52, side * r * 0.46);
+      roboPart(x, r * 0.86, r * 0.5, th, a);
+      x.restore();
+    }
+    x.save();
+    x.translate(-r * 0.1, 0);
+    roboPart(x, r * 0.86, r * 1.42, th, a);
+    x.restore();
+    x.save();
+    x.translate(-r * 0.62, 0);
+    roboPart(x, r * 0.3, r * 1.02, th, a, "trim");
+    x.restore();
+    x.restore();
+  }
+  function ambxstHand(x, cx, cy, r, a, sx, sy) {
+    if (r < 0.3) return;
+    const k = Math.sqrt(Math.abs(sx * sy)) || 1;
+    x.save();
+    x.translate(cx, cy);
+    x.scale(k / (sx || 1), k / (sy || 1));
+    x.translate(-cx, -cy);
+    const g = x.createLinearGradient(cx - r * 0.5, cy - r, cx + r * 0.5, cy + r);
+    g.addColorStop(0, a.top);
+    g.addColorStop(1, a.bottom);
+    x.beginPath();
+    x.arc(cx, cy, r, 0, Math.PI * 2);
+    x.fillStyle = g;
+    x.fill();
+    x.save();
+    x.clip();
+    x.beginPath();
+    x.arc(cx, cy, r, 0, Math.PI * 2);
+    x.lineWidth = r * 0.5;
+    x.strokeStyle = "rgba(0,0,0,0.1)";
+    x.stroke();
+    x.beginPath();
+    x.arc(cx + r * 0.12, cy + r * 0.16, r, 0, Math.PI * 2);
+    x.rect(cx - 2 * r, cy - 2 * r, 4 * r, 4 * r);
+    x.fillStyle = "rgba(255,255,255,0.22)";
+    x.fill("evenodd");
+    const hl = x.createRadialGradient(cx - r * 0.35, cy - r * 0.4, 0, cx - r * 0.35, cy - r * 0.4, r * 0.6);
+    hl.addColorStop(0, "rgba(255,255,255,0.45)");
+    hl.addColorStop(1, "rgba(255,255,255,0)");
+    x.fillStyle = hl;
+    x.fillRect(cx - r, cy - r, 2 * r, 2 * r);
+    x.restore();
+    x.restore();
+  }
+  var roboShoulder = (hw, hh, side) => ({ x: side * hw * 0.8, y: hh * 0.04 });
+  function drawHandL(x, hw, hh, p, arms) {
     if (p.handL <= 0.01) return;
     const { x: hx, y: hy, r } = handLPos(hw, hh, p);
     if (r < 0.3) return;
+    if ((arms == null ? void 0 : arms.kind) === "ambxst") {
+      ambxstHand(x, hx, hy, r * 0.95, arms, p.sx, p.sy);
+      return;
+    }
+    if ((arms == null ? void 0 : arms.kind) === "robo") {
+      const s = roboShoulder(hw, hh, -1);
+      const w = hh * 2 * 0.15 * p.handL;
+      const th = Math.atan2(hy - s.y, hx - s.x);
+      roboBar(x, s.x, s.y, hx - Math.cos(th) * r * 0.6, hy - Math.sin(th) * r * 0.6, w, 0, arms);
+      roboGripper(x, hx, hy, r, th, arms);
+      return;
+    }
     x.save();
     x.translate(hx, hy);
     x.rotate(-0.35);
     mitten(x, r * 1.6, r * 2.1, handFill(x, r, -r, -r, r));
     x.restore();
   }
-  function drawHandR(x, hw, hh, p) {
+  function drawHandR(x, hw, hh, p, arms) {
     if (p.handR <= 0.01) return;
     const h2 = handRPos(hw, hh, p);
     if (h2.T < 0.3) return;
+    const ux = Math.cos(h2.ang);
+    const uy = Math.sin(h2.ang);
+    if ((arms == null ? void 0 : arms.kind) === "ambxst") {
+      ambxstHand(x, h2.x + ux * h2.L * 0.25, h2.y + uy * h2.L * 0.25, h2.T * 0.62, arms, p.sx, p.sy);
+      return;
+    }
+    if ((arms == null ? void 0 : arms.kind) === "robo") {
+      const s = roboShoulder(hw, hh, 1);
+      const hr = h2.T * 0.68;
+      const ex = h2.x - ux * h2.L * 0.42;
+      const ey = h2.y - uy * h2.L * 0.42;
+      const reach2 = h2.L * 0.5 - Math.max(0, hr - h2.T / 2);
+      const hx = h2.x + ux * reach2;
+      const hy = h2.y + uy * reach2;
+      const w = h2.T * 0.62;
+      const th = h2.ang;
+      roboBar(x, s.x, s.y, ex, ey, w * 0.9, 0, arms);
+      roboBar(x, ex, ey, hx - ux * hr * 0.6, hy - uy * hr * 0.6, w, 0, arms);
+      roboBolt(x, ex, ey, w * 0.5, arms);
+      roboGripper(x, hx, hy, hr, th, arms);
+      return;
+    }
     x.save();
     x.translate(h2.x, h2.y);
     x.rotate(h2.ang + Math.PI / 2);
@@ -19805,8 +19996,9 @@ ${t("Middle-click to copy the path")}` : "");
     x.translate(p.x, p.y);
     x.rotate(p.tilt);
     x.scale(p.sx, p.sy);
-    drawHandL(x, hw, hh, p);
-    drawHandR(x, hw, hh, p);
+    const arms = greetArms();
+    drawHandL(x, hw, hh, p, arms);
+    drawHandR(x, hw, hh, p, arms);
     x.save();
     greetRobo(x, hw, p);
     x.restore();

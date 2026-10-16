@@ -10,6 +10,7 @@ import { island as islandNow } from "../main";
 import { isRobo, mainLook } from "./config";
 import { css, radiance } from "./tv/light";
 import { getShape } from "./tv/geometry";
+import type { RobotHeadShape } from "./types";
 
 let robot: Robot | null = null;
 let last = 0;
@@ -68,4 +69,34 @@ export function greetMetal(x: CanvasRenderingContext2D, x0: number, y0: number, 
   g.addColorStop(0.7, lit(0.35, 0.95));
   g.addColorStop(1, lit(0.75, 0.55));
   return g;
+}
+
+/** How the greeting draws the mascot's arms and hands (lib/public/greeting.ts). */
+export type GreetArms =
+  | {
+    kind: "robo";
+    /** Settings → Style's head shape: the arms' corners follow it. */
+    shape: RobotHeadShape;
+    /** His shell, lit at a normal (x right, y down, z toward the viewer). */
+    shell: (nx: number, ny: number, nz: number) => string;
+    /** His trim (the ears' metal), the same way. */
+    trim: (nx: number, ny: number, nz: number) => string;
+  }
+  | { kind: "ambxst"; top: string; mid: string; bottom: string };
+
+/** Robo's or Axenide's arm style, or null for neither (the plain mittens). */
+export function greetArms(): GreetArms | null {
+  if (isAmbxst()) {
+    const c = coloursFor(islandNow?.engine.bodyColor as number[] | null);
+    const rgb = (v: number[]) => `rgb(${v.map(Math.round).join(",")})`;
+    return { kind: "ambxst", top: rgb(c.top), mid: rgb(c.mid), bottom: rgb(c.bottom) };
+  }
+  if (!isRobo()) return null;
+  const look = mainLook();
+  const pal = palette(look.shell, look.trim, look.screen);
+  const lit = (m: typeof pal.shell) => (nx: number, ny: number, nz: number) => {
+    const l = Math.hypot(nx, ny, nz) || 1;
+    return css(radiance(m, nx / l, ny / l, nz / l));
+  };
+  return { kind: "robo", shape: look.shape, shell: lit(pal.shell), trim: lit(pal.trim) };
 }

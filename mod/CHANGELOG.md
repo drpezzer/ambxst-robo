@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- **New arms in the launch greeting**: Robo waves with robot arms in his own
+  shell colour and finish, their corners following his head's shape, with an
+  elbow bolt and a two-finger gripper. Axenide gets round hands in his colour.
+
 ## 1.1.0 — installs itself
 
 Installing or updating the mod in Ambxst is now all there is to do: no Rust,
