@@ -137,6 +137,18 @@ FocusScope {
         Behavior on opacity { NumberAnimation { duration: 220; easing.type: Easing.BezierSpline; easing.bezierCurve: C.RoboTheme.easeOut } }
     }
 
+    // Port (zero-touch install): the daemon's setup or update, and the
+    // one-time offer to connect Claude Code, over the top of the home chat.
+    Item {
+        x: 10
+        y: Math.round(isl.islandH) + 4
+        width: 640 - 20
+        height: banner.implicitHeight
+        z: 11
+        visible: !root.compact && !root.staged
+        V.CoreBanner { id: banner; width: parent.width }
+    }
+
     /** Port: the notch shows only the island (RoboShell.compact). */
     readonly property bool compact: RoboShell.compactShown
     // Port (his ask): there, a click on the mascot opens the whole tab.

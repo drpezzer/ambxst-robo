@@ -4031,6 +4031,204 @@
    "pt-BR": "anotado, já vem…",
    "ru": "записал, скоро…",
    "id": "dicatat, segera…"
+  },
+  "Setting up Robo…": {
+   "zh-Hans": "正在设置 Robo…",
+   "hi": "Robo सेट अप हो रहा है…",
+   "es": "Preparando Robo…",
+   "ar": "جارٍ إعداد Robo…",
+   "fr": "Installation de Robo…",
+   "bn": "Robo সেট আপ হচ্ছে…",
+   "pt-BR": "Configurando o Robo…",
+   "ru": "Настраиваю Robo…",
+   "id": "Menyiapkan Robo…"
+  },
+  "Updating Robo's core…": {
+   "zh-Hans": "正在更新 Robo 的核心…",
+   "hi": "Robo का कोर अपडेट हो रहा है…",
+   "es": "Actualizando el núcleo de Robo…",
+   "ar": "جارٍ تحديث نواة Robo…",
+   "fr": "Mise à jour du cœur de Robo…",
+   "bn": "Robo-র কোর আপডেট হচ্ছে…",
+   "pt-BR": "Atualizando o núcleo do Robo…",
+   "ru": "Обновляю ядро Robo…",
+   "id": "Memperbarui inti Robo…"
+  },
+  "Robo's core will update when the current reply finishes.": {
+   "zh-Hans": "当前回复结束后，Robo 的核心会更新。",
+   "hi": "मौजूदा जवाब पूरा होते ही Robo का कोर अपडेट होगा।",
+   "es": "El núcleo de Robo se actualizará cuando termine la respuesta en curso.",
+   "ar": "سيتم تحديث نواة Robo عند انتهاء الرد الحالي.",
+   "fr": "Le cœur de Robo se mettra à jour quand la réponse en cours sera finie.",
+   "bn": "বর্তমান উত্তর শেষ হলে Robo-র কোর আপডেট হবে।",
+   "pt-BR": "O núcleo do Robo será atualizado quando a resposta atual terminar.",
+   "ru": "Ядро Robo обновится, когда закончится текущий ответ.",
+   "id": "Inti Robo akan diperbarui setelah balasan saat ini selesai."
+  },
+  "Robo's core is up to date.": {
+   "zh-Hans": "Robo 的核心已是最新。",
+   "hi": "Robo का कोर अप-टू-डेट है।",
+   "es": "El núcleo de Robo está al día.",
+   "ar": "نواة Robo محدَّثة.",
+   "fr": "Le cœur de Robo est à jour.",
+   "bn": "Robo-র কোর হালনাগাদ আছে।",
+   "pt-BR": "O núcleo do Robo está atualizado.",
+   "ru": "Ядро Robo обновлено.",
+   "id": "Inti Robo sudah terbaru."
+  },
+  "Robo is ready.": {
+   "zh-Hans": "Robo 已就绪。",
+   "hi": "Robo तैयार है।",
+   "es": "Robo está listo.",
+   "ar": "Robo جاهز.",
+   "fr": "Robo est prêt.",
+   "bn": "Robo প্রস্তুত।",
+   "pt-BR": "O Robo está pronto.",
+   "ru": "Robo готов.",
+   "id": "Robo siap."
+  },
+  "There is no ready-made Robo core for this computer. Install Rust (cargo) and retry: Robo will build it here.": {
+   "zh-Hans": "没有适用于这台电脑的现成 Robo 核心。请安装 Rust（cargo）后重试：Robo 会在本机构建它。",
+   "hi": "इस कंप्यूटर के लिए Robo का कोई तैयार कोर नहीं है। Rust (cargo) इंस्टॉल करके फिर कोशिश करें: Robo उसे यहीं बना लेगा।",
+   "es": "No hay un núcleo de Robo listo para este ordenador. Instala Rust (cargo) y vuelve a intentarlo: Robo lo compilará aquí.",
+   "ar": "لا توجد نواة Robo جاهزة لهذا الحاسوب. ثبّت Rust (cargo) ثم أعد المحاولة: سيبنيها Robo هنا.",
+   "fr": "Il n'y a pas de cœur de Robo tout prêt pour cet ordinateur. Installe Rust (cargo) et réessaie : Robo le compilera ici.",
+   "bn": "এই কম্পিউটারের জন্য Robo-র কোনো তৈরি কোর নেই। Rust (cargo) ইনস্টল করে আবার চেষ্টা করুন: Robo এখানেই সেটি বানাবে।",
+   "pt-BR": "Não há um núcleo do Robo pronto para este computador. Instale o Rust (cargo) e tente de novo: o Robo vai compilá-lo aqui.",
+   "ru": "Для этого компьютера нет готового ядра Robo. Установите Rust (cargo) и повторите: Robo соберёт его здесь.",
+   "id": "Tidak ada inti Robo siap pakai untuk komputer ini. Pasang Rust (cargo) lalu coba lagi: Robo akan membangunnya di sini."
+  },
+  "Robo's ready-made core does not run on this system. Install Rust (cargo) and retry: Robo will build it here.": {
+   "zh-Hans": "Robo 的现成核心无法在此系统上运行。请安装 Rust（cargo）后重试：Robo 会在本机构建它。",
+   "hi": "Robo का तैयार कोर इस सिस्टम पर नहीं चलता। Rust (cargo) इंस्टॉल करके फिर कोशिश करें: Robo उसे यहीं बना लेगा।",
+   "es": "El núcleo listo de Robo no funciona en este sistema. Instala Rust (cargo) y vuelve a intentarlo: Robo lo compilará aquí.",
+   "ar": "نواة Robo الجاهزة لا تعمل على هذا النظام. ثبّت Rust (cargo) ثم أعد المحاولة: سيبنيها Robo هنا.",
+   "fr": "Le cœur tout prêt de Robo ne fonctionne pas sur ce système. Installe Rust (cargo) et réessaie : Robo le compilera ici.",
+   "bn": "Robo-র তৈরি কোর এই সিস্টেমে চলে না। Rust (cargo) ইনস্টল করে আবার চেষ্টা করুন: Robo এখানেই সেটি বানাবে।",
+   "pt-BR": "O núcleo pronto do Robo não funciona neste sistema. Instale o Rust (cargo) e tente de novo: o Robo vai compilá-lo aqui.",
+   "ru": "Готовое ядро Robo не запускается в этой системе. Установите Rust (cargo) и повторите: Robo соберёт его здесь.",
+   "id": "Inti Robo siap pakai tidak berjalan di sistem ini. Pasang Rust (cargo) lalu coba lagi: Robo akan membangunnya di sini."
+  },
+  "Robo's core could not be downloaded. Check your connection and retry.": {
+   "zh-Hans": "无法下载 Robo 的核心。请检查网络连接后重试。",
+   "hi": "Robo का कोर डाउनलोड नहीं हो सका। अपना कनेक्शन जांचें और फिर कोशिश करें।",
+   "es": "No se pudo descargar el núcleo de Robo. Comprueba tu conexión y vuelve a intentarlo.",
+   "ar": "تعذّر تنزيل نواة Robo. تحقّق من اتصالك ثم أعد المحاولة.",
+   "fr": "Impossible de télécharger le cœur de Robo. Vérifie ta connexion et réessaie.",
+   "bn": "Robo-র কোর ডাউনলোড করা যায়নি। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।",
+   "pt-BR": "Não foi possível baixar o núcleo do Robo. Verifique sua conexão e tente de novo.",
+   "ru": "Не удалось скачать ядро Robo. Проверьте подключение и повторите.",
+   "id": "Inti Robo tidak dapat diunduh. Periksa koneksi Anda lalu coba lagi."
+  },
+  "Robo's core download did not match its checksum, so nothing was installed. Retry later.": {
+   "zh-Hans": "Robo 核心的下载与其校验和不符，因此未安装任何内容。请稍后重试。",
+   "hi": "Robo के कोर का डाउनलोड उसके चेकसम से मेल नहीं खाया, इसलिए कुछ भी इंस्टॉल नहीं हुआ। बाद में फिर कोशिश करें।",
+   "es": "La descarga del núcleo de Robo no coincidía con su suma de comprobación, así que no se instaló nada. Vuelve a intentarlo más tarde.",
+   "ar": "لم يطابق تنزيل نواة Robo مجموعَ التحقق الخاص به، لذا لم يُثبَّت شيء. أعد المحاولة لاحقًا.",
+   "fr": "Le téléchargement du cœur de Robo ne correspondait pas à sa somme de contrôle : rien n'a été installé. Réessaie plus tard.",
+   "bn": "Robo-র কোরের ডাউনলোড তার চেকসামের সাথে মেলেনি, তাই কিছুই ইনস্টল হয়নি। পরে আবার চেষ্টা করুন।",
+   "pt-BR": "O download do núcleo do Robo não bateu com o checksum, então nada foi instalado. Tente de novo mais tarde.",
+   "ru": "Загруженное ядро Robo не совпало с контрольной суммой, поэтому ничего не установлено. Повторите позже.",
+   "id": "Unduhan inti Robo tidak cocok dengan checksum-nya, jadi tidak ada yang dipasang. Coba lagi nanti."
+  },
+  "Building Robo's core failed. Its log is in ~/.local/state/ambxst-robo/core-install.log.": {
+   "zh-Hans": "构建 Robo 的核心失败。日志位于 ~/.local/state/ambxst-robo/core-install.log。",
+   "hi": "Robo का कोर बनाना विफल रहा। उसका लॉग ~/.local/state/ambxst-robo/core-install.log में है।",
+   "es": "No se pudo compilar el núcleo de Robo. Su registro está en ~/.local/state/ambxst-robo/core-install.log.",
+   "ar": "فشل بناء نواة Robo. سجلّه في ~/.local/state/ambxst-robo/core-install.log.",
+   "fr": "La compilation du cœur de Robo a échoué. Son journal est dans ~/.local/state/ambxst-robo/core-install.log.",
+   "bn": "Robo-র কোর বানানো ব্যর্থ হয়েছে। এর লগ ~/.local/state/ambxst-robo/core-install.log-এ আছে।",
+   "pt-BR": "A compilação do núcleo do Robo falhou. O log está em ~/.local/state/ambxst-robo/core-install.log.",
+   "ru": "Не удалось собрать ядро Robo. Журнал: ~/.local/state/ambxst-robo/core-install.log.",
+   "id": "Gagal membangun inti Robo. Log-nya ada di ~/.local/state/ambxst-robo/core-install.log."
+  },
+  "Robo's core could not be started as a user service (systemctl --user).": {
+   "zh-Hans": "无法将 Robo 的核心作为用户服务启动（systemctl --user）。",
+   "hi": "Robo का कोर यूज़र सर्विस के रूप में शुरू नहीं हो सका (systemctl --user)।",
+   "es": "No se pudo iniciar el núcleo de Robo como servicio de usuario (systemctl --user).",
+   "ar": "تعذّر تشغيل نواة Robo كخدمة مستخدم (systemctl --user).",
+   "fr": "Impossible de démarrer le cœur de Robo comme service utilisateur (systemctl --user).",
+   "bn": "Robo-র কোর ইউজার সার্ভিস হিসেবে চালু করা যায়নি (systemctl --user)।",
+   "pt-BR": "Não foi possível iniciar o núcleo do Robo como serviço de usuário (systemctl --user).",
+   "ru": "Не удалось запустить ядро Robo как пользовательскую службу (systemctl --user).",
+   "id": "Inti Robo tidak dapat dijalankan sebagai layanan pengguna (systemctl --user)."
+  },
+  "Robo needs curl, tar and sha256sum to install its core.": {
+   "zh-Hans": "Robo 需要 curl、tar 和 sha256sum 来安装其核心。",
+   "hi": "अपना कोर इंस्टॉल करने के लिए Robo को curl, tar और sha256sum चाहिए।",
+   "es": "Robo necesita curl, tar y sha256sum para instalar su núcleo.",
+   "ar": "يحتاج Robo إلى curl وtar وsha256sum لتثبيت نواته.",
+   "fr": "Robo a besoin de curl, tar et sha256sum pour installer son cœur.",
+   "bn": "কোর ইনস্টল করতে Robo-র curl, tar ও sha256sum দরকার।",
+   "pt-BR": "O Robo precisa de curl, tar e sha256sum para instalar o núcleo.",
+   "ru": "Чтобы установить ядро, Robo нужны curl, tar и sha256sum.",
+   "id": "Robo memerlukan curl, tar, dan sha256sum untuk memasang intinya."
+  },
+  "Robo's core was installed but did not start. Its log is in ~/.local/state/ambxst-robo/.": {
+   "zh-Hans": "Robo 的核心已安装但未启动。日志位于 ~/.local/state/ambxst-robo/。",
+   "hi": "Robo का कोर इंस्टॉल हो गया पर शुरू नहीं हुआ। उसका लॉग ~/.local/state/ambxst-robo/ में है।",
+   "es": "El núcleo de Robo se instaló pero no arrancó. Su registro está en ~/.local/state/ambxst-robo/.",
+   "ar": "ثُبِّتت نواة Robo لكنها لم تبدأ. سجلّها في ~/.local/state/ambxst-robo/.",
+   "fr": "Le cœur de Robo est installé mais n'a pas démarré. Son journal est dans ~/.local/state/ambxst-robo/.",
+   "bn": "Robo-র কোর ইনস্টল হয়েছে কিন্তু চালু হয়নি। এর লগ ~/.local/state/ambxst-robo/-এ আছে।",
+   "pt-BR": "O núcleo do Robo foi instalado, mas não iniciou. O log está em ~/.local/state/ambxst-robo/.",
+   "ru": "Ядро Robo установлено, но не запустилось. Журнал: ~/.local/state/ambxst-robo/.",
+   "id": "Inti Robo sudah terpasang tetapi tidak berjalan. Log-nya ada di ~/.local/state/ambxst-robo/."
+  },
+  "Robo's core could not be installed. Its log is in ~/.local/state/ambxst-robo/core-install.log.": {
+   "zh-Hans": "无法安装 Robo 的核心。日志位于 ~/.local/state/ambxst-robo/core-install.log。",
+   "hi": "Robo का कोर इंस्टॉल नहीं हो सका। उसका लॉग ~/.local/state/ambxst-robo/core-install.log में है।",
+   "es": "No se pudo instalar el núcleo de Robo. Su registro está en ~/.local/state/ambxst-robo/core-install.log.",
+   "ar": "تعذّر تثبيت نواة Robo. سجلّها في ~/.local/state/ambxst-robo/core-install.log.",
+   "fr": "Impossible d'installer le cœur de Robo. Son journal est dans ~/.local/state/ambxst-robo/core-install.log.",
+   "bn": "Robo-র কোর ইনস্টল করা যায়নি। এর লগ ~/.local/state/ambxst-robo/core-install.log-এ আছে।",
+   "pt-BR": "Não foi possível instalar o núcleo do Robo. O log está em ~/.local/state/ambxst-robo/core-install.log.",
+   "ru": "Не удалось установить ядро Robo. Журнал: ~/.local/state/ambxst-robo/core-install.log.",
+   "id": "Inti Robo tidak dapat dipasang. Log-nya ada di ~/.local/state/ambxst-robo/core-install.log."
+  },
+  "Let Robo see your Claude Code sessions?": {
+   "zh-Hans": "让 Robo 查看你的 Claude Code 会话？",
+   "hi": "Robo को अपने Claude Code सेशन देखने दें?",
+   "es": "¿Dejar que Robo vea tus sesiones de Claude Code?",
+   "ar": "هل تسمح لـ Robo برؤية جلسات Claude Code الخاصة بك؟",
+   "fr": "Laisser Robo voir tes sessions Claude Code ?",
+   "bn": "Robo-কে আপনার Claude Code সেশন দেখতে দেবেন?",
+   "pt-BR": "Deixar o Robo ver suas sessões do Claude Code?",
+   "ru": "Разрешить Robo видеть ваши сессии Claude Code?",
+   "id": "Izinkan Robo melihat sesi Claude Code Anda?"
+  },
+  "Robo adds its hooks to ~/.claude/settings.json (it keeps a backup, your own hooks stay). New sessions pick them up.": {
+   "zh-Hans": "Robo 会把它的 hooks 加入 ~/.claude/settings.json（会保留备份，你自己的 hooks 不受影响）。新会话会加载它们。",
+   "hi": "Robo अपने hooks ~/.claude/settings.json में जोड़ता है (बैकअप रखता है, आपके अपने hooks बने रहते हैं)। नए सेशन उन्हें ले लेते हैं।",
+   "es": "Robo añade sus hooks a ~/.claude/settings.json (guarda una copia de seguridad y tus propios hooks se quedan). Las sesiones nuevas los cargan.",
+   "ar": "يضيف Robo خطافاته (hooks) إلى ‎~/.claude/settings.json (يحتفظ بنسخة احتياطية وتبقى خطافاتك كما هي). تلتقطها الجلسات الجديدة.",
+   "fr": "Robo ajoute ses hooks à ~/.claude/settings.json (il garde une sauvegarde, tes propres hooks restent). Les nouvelles sessions les prennent.",
+   "bn": "Robo তার hooks ~/.claude/settings.json-এ যোগ করে (ব্যাকআপ রাখে, আপনার নিজের hooks থেকে যায়)। নতুন সেশন সেগুলো নেয়।",
+   "pt-BR": "O Robo adiciona os hooks dele a ~/.claude/settings.json (guarda um backup, seus próprios hooks ficam). As novas sessões passam a usá-los.",
+   "ru": "Robo добавит свои хуки в ~/.claude/settings.json (сохранит резервную копию, ваши хуки останутся). Новые сессии их подхватят.",
+   "id": "Robo menambahkan hooks-nya ke ~/.claude/settings.json (menyimpan cadangan, hooks Anda sendiri tetap ada). Sesi baru akan memakainya."
+  },
+  "Some of Robo waits for its new core (version {version}).": {
+   "zh-Hans": "Robo 的部分功能正在等待新的核心（版本 {version}）。",
+   "hi": "Robo के कुछ हिस्से उसके नए कोर (संस्करण {version}) का इंतज़ार कर रहे हैं।",
+   "es": "Parte de Robo espera a su nuevo núcleo (versión {version}).",
+   "ar": "بعض ميزات Robo تنتظر نواته الجديدة (الإصدار {version}).",
+   "fr": "Une partie de Robo attend son nouveau cœur (version {version}).",
+   "bn": "Robo-র কিছু অংশ তার নতুন কোরের (সংস্করণ {version}) অপেক্ষায় আছে।",
+   "pt-BR": "Parte do Robo espera pelo novo núcleo (versão {version}).",
+   "ru": "Часть Robo ждёт новое ядро (версия {version}).",
+   "id": "Sebagian Robo menunggu inti barunya (versi {version})."
+  },
+  "Not now": {
+   "zh-Hans": "暂不",
+   "hi": "अभी नहीं",
+   "es": "Ahora no",
+   "ar": "ليس الآن",
+   "fr": "Pas maintenant",
+   "bn": "এখন নয়",
+   "pt-BR": "Agora não",
+   "ru": "Не сейчас",
+   "id": "Jangan sekarang"
   }
  }
 }

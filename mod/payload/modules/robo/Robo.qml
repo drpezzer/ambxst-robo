@@ -307,7 +307,10 @@ Singleton {
                 if (root.island) Qt.callLater(() => root.lib.ChatView.chat().resync());
                 while (root.queue.length > 0) core.write(root.queue.shift() + "\n");
                 core.flush();
+                // Zero-touch install: is this daemon the mod's own version? (RoboCore)
+                RoboCore.coreUp();
             } else {
+                RoboCore.coreDown();
                 // Requests in flight will never get an answer.
                 for (const id of Object.keys(root.pending)) {
                     const p = root.pending[id];
@@ -638,6 +641,8 @@ Singleton {
         if (started) return;
         started = true;
         installHost();
+        // The daemon is the mod's to install and keep at its version (RoboCore.qml).
+        RoboCore.begin();
         // text() blocks until the flag file is read; `loaded` alone was still
         // false here, which made every shell reload greet.
         // His call: Robo's launch greeting plays after every shell start, the

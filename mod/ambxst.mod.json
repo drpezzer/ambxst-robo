@@ -3,10 +3,11 @@
   "manifestVersion": 1,
   "id": "drpezzer.ambxst-robo",
   "name": "Ambxst Robo",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Ambxst Robo in Ambxst's notch, a port of Coucou (Louis-CFM/coucou): Robo watches your AI coding agents, lets you approve and answer from the notch, chat, drop files and keep an eye on your services.",
   "license": "AGPL-3.0-or-later",
   "author": "drpezzer",
+  "homepage": "https://github.com/drpezzer/ambxst-robo",
   "compatibility": {
     "api": 1,
     "ambxst": ">=1.3.10 <2.0.0",
@@ -17,10 +18,9 @@
   },
   "dependencies": [],
   "conflicts": [],
-  "commands": [
-    "ambxst-robo"
-  ],
+  "commands": [],
   "permissions": [
+    "Installs and updates its daemon itself: downloads ambxst-robo from this project's GitHub release for the mod's version (sha256-checked; built with cargo where no download fits), puts it in ~/.local/bin and runs it as the systemd user service ambxst-robo.service",
     "Talks to ambxst-robo (a user service) over $XDG_RUNTIME_DIR/ambxst-robo-core.sock",
     "Takes over SUPER+A (`ambxst run assistant`) and the bar's logo",
     "Opens the notch on its own for permission requests and questions, without taking the keyboard"
@@ -207,6 +207,11 @@
     },
     {
       "type": "overlay",
+      "source": "payload/modules/robo/RoboCore.qml",
+      "target": "modules/robo/RoboCore.qml"
+    },
+    {
+      "type": "overlay",
       "source": "payload/modules/robo/RoboDropArea.qml",
       "target": "modules/robo/RoboDropArea.qml"
     },
@@ -244,6 +249,16 @@
       "type": "overlay",
       "source": "payload/modules/robo/robo-lib.js",
       "target": "modules/robo/robo-lib.js"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/core/RELEASE",
+      "target": "modules/robo/core/RELEASE"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/core/robo-core-install.sh",
+      "target": "modules/robo/core/robo-core-install.sh"
     },
     {
       "type": "overlay",
@@ -529,6 +544,11 @@
       "type": "overlay",
       "source": "payload/modules/robo/views/ConvDrag.qml",
       "target": "modules/robo/views/ConvDrag.qml"
+    },
+    {
+      "type": "overlay",
+      "source": "payload/modules/robo/views/CoreBanner.qml",
+      "target": "modules/robo/views/CoreBanner.qml"
     },
     {
       "type": "overlay",

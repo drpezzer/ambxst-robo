@@ -2,7 +2,7 @@
 
 ![Robo in the notch: it opens on a chat, works through a turn and answers](docs/media/notch-open.gif)
 
-Version 1.0.0 — see the [changelog](CHANGELOG.md).
+Version 1.1.0 — see the [changelog](CHANGELOG.md).
 
 Ambxst Robo puts a small robot in [Ambxst](https://github.com/Axenide/Ambxst)'s
 notch. It keeps an eye on your AI coding agents (Claude Code, Codex, Gemini
@@ -62,7 +62,7 @@ The two mascots and their moods:
 | Part | What it is |
 | --- | --- |
 | `core/` | `ambxst-robo`, a user daemon (hooks, approvals, chat, integrations, settings), and `ambxst-robo-hook`, the relay your agents' hooks call. Rust. |
-| `mod/` | The Ambxst mod (`drpezzer.ambxst-robo`): the QML payload, the built library `modules/robo/robo-lib.js`, Robo's sounds, and a patch to Ambxst. |
+| `mod/` | The Ambxst mod (`drpezzer.ambxst-robo`): the QML payload, the built library `modules/robo/robo-lib.js`, Robo's sounds, a patch to Ambxst, and the installer that sets up and updates the daemon (`modules/robo/core`). |
 | `lib/` | TypeScript sources of `robo-lib.js`: Coucou's island code (vendored in `lib/vendor/coucou`) plus the QML host shims and the mascots. |
 
 The shell talks to the daemon over `$XDG_RUNTIME_DIR/ambxst-robo-core.sock`;
@@ -72,74 +72,83 @@ agents' hooks reach it through the relay on `$XDG_RUNTIME_DIR/ambxst-robo.sock`.
 ## Requirements
 
 - [Ambxst](https://github.com/Axenide/Ambxst) 1.3.10 or newer, below 2.0.0,
-  with mod support (`ambxst mods`). Ambxst Robo 1.0.0 is tested on Ambxst
+  with mod support (`ambxst mods`). Ambxst Robo 1.1.0 is tested on Ambxst
   1.3.12, on Hyprland (the shell reads the cursor and windows through
   `hyprctl`).
-- Git, and Rust (stable) with Cargo, to build the daemon.
+- A systemd user session (`systemctl --user`), and `curl`, `tar` and
+  `sha256sum`, which Robo uses to set up its daemon. The ready-made daemon is
+  for x86_64 and aarch64 Linux with glibc 2.35 or newer (any current
+  distribution); elsewhere Robo builds it if Rust (`cargo`) is installed.
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (the `claude`
   CLI on your `PATH`) for Claude Code sessions in the notch and for the chat's
   Claude Code mode. Other agents (Codex, Gemini CLI, Cursor Agent, GitHub
   Copilot CLI…) are optional.
 - The Secret Service (GNOME Keyring, KWallet…) if you want to store API keys.
-- Node.js 18+ and npm, only to rebuild `robo-lib.js` (the built file is in the
-  repo).
 
 ## Install
 
-1. Get the sources:
+Install the mod in Ambxst, enable it and restart Ambxst:
 
-   ```sh
-   git clone https://github.com/drpezzer/ambxst-robo.git
-   cd ambxst-robo
-   ```
+```sh
+ambxst mods install https://github.com/drpezzer/ambxst-robo/tree/main/mod
+ambxst mods enable drpezzer.ambxst-robo
+ambxst reload
+```
 
-2. Build the daemon and its hook relay, and install both:
+(Or the same from Ambxst's **Settings → Mods**. Use that `/tree/main/mod`
+URL: with the bare repository URL the install works but updates do not.)
 
-   ```sh
-   (cd core && cargo build --release)
-   install -Dm755 core/target/release/ambxst-robo ~/.local/bin/ambxst-robo
-   install -Dm755 core/target/release/ambxst-robo-hook ~/.local/bin/ambxst-robo-hook
-   ```
+That's all. When the shell starts, Robo sets up its daemon by itself — the
+notch says "Setting up Robo…" for a few seconds:
 
-   On its first start the daemon copies the relay to
-   `~/.local/share/ambxst-robo/bin/ambxst-robo-hook`, the path the agents'
-   hooks call.
+- it downloads `ambxst-robo` (the daemon) and `ambxst-robo-hook` (the relay
+  your agents' hooks call) from this repository's
+  [release](https://github.com/drpezzer/ambxst-robo/releases) for the mod's
+  version, checks them against the release's `SHA256SUMS`, and installs them
+  in `~/.local/bin`;
+- it writes the user service `~/.config/systemd/user/ambxst-robo.service`,
+  enables it and starts it.
 
-3. Run the daemon as a user service:
+Without a ready-made daemon for your machine (another architecture, or a
+system where it does not run) it builds it from the release's sources if
+`cargo` is installed; otherwise Robo's tab says what is missing, with a
+**Retry** button. What the installer did is in
+`~/.local/state/ambxst-robo/core-install.log`.
 
-   ```sh
-   install -Dm644 core/ambxst-robo.service ~/.config/systemd/user/ambxst-robo.service
-   systemctl --user daemon-reload
-   systemctl --user enable --now ambxst-robo.service
-   ```
+The mod takes over `SUPER+A` (`ambxst run assistant`) and the bar's logo,
+and opens the notch on its own for permission requests and questions.
 
-   To let it refresh the relay from the binary in `~/.local/bin` on each start
-   (after an update), uncomment `Environment=AMBXST_ROBO_INSTALL_RELAY=1` in
-   the unit.
+**Claude Code:** the first time, Robo's tab offers to connect Claude Code:
+**Connect** adds Robo's hooks to `~/.claude/settings.json` (with a dated
+backup; your own hooks stay). Restart sessions that were already running so
+they pick the hooks up. The hooks for the other agents, and a preview of every
+change before it is written, are in Robo's settings (Ambxst's settings, AI
+tab, or *Settings…* in the menu you get with a middle click on Robo in the
+bar), **Agents**.
 
-4. Install the mod, enable it and restart Ambxst:
+### Update
 
-   ```sh
-   ambxst mods install "$PWD/mod"
-   ambxst mods enable drpezzer.ambxst-robo
-   ambxst reload
-   ```
+Update the mod the way Ambxst updates any mod — **Settings → Mods → Check for
+updates** (or automatically, if you turned that on), or:
 
-   Ambxst keeps the path it installed from: leave the clone where it is, so
-   `ambxst mods update` can find it. (You can also install the mod straight
-   from GitHub with
-   `ambxst mods install https://github.com/drpezzer/ambxst-robo/tree/main/mod`;
-   you still need the clone for the daemon. Use that `/tree/main/mod` form:
-   with the bare repository URL the install works but `mods update` does not.)
+```sh
+ambxst mods update drpezzer.ambxst-robo
+ambxst reload
+```
 
-   The mod takes over `SUPER+A` (`ambxst run assistant`) and the bar's logo,
-   and opens the notch on its own for permission requests and questions.
+Robo then brings its daemon to the same version by itself ("Updating Robo's
+core…"). If a chat reply is under way, the daemon is restarted once it has
+finished; until then Robo's tab says the update is waiting. Hooks you
+installed follow the daemon's version on their own.
 
-5. Hook up your agents: open Robo's settings (Ambxst's settings, AI tab, or
-   *Settings…* in the menu you get with a middle click on Robo in the bar),
-   and in **Agents** install the hooks for Claude Code and for the other
-   agents you use. Restart sessions that were already running so they pick the hooks
-   up.
+If `mods update` asks you to review the changes (a release changed the mod's
+permissions or commands, as 1.1.0 does), run
+`ambxst mods check-updates drpezzer.ambxst-robo` and then
+`ambxst mods apply-updates <plan>` as it says, or review it in Settings → Mods.
+
+Coming from 1.0.0, where you built the daemon yourself: the update replaces
+the daemon in `~/.local/bin` and rewrites `ambxst-robo.service`. Put your own
+changes to the unit in a drop-in (`systemctl --user edit ambxst-robo.service`).
 
 ### Where things live
 
@@ -148,24 +157,15 @@ agents' hooks reach it through the relay on `$XDG_RUNTIME_DIR/ambxst-robo.sock`.
 | Settings | `~/.config/ambxst-robo/settings.json` (edited from Robo's settings) |
 | Your own sounds | `~/.config/ambxst-robo/sounds` (see [Sounds](#sounds)) |
 | Saved chats, recap, log (`ambxst-robo.log`) | `~/.local/share/ambxst-robo` |
-| Hook relay | `~/.local/share/ambxst-robo/bin/ambxst-robo-hook` |
+| The daemon and the relay | `~/.local/bin/ambxst-robo`, `~/.local/bin/ambxst-robo-hook` |
+| The relay your agents' hooks call | `~/.local/share/ambxst-robo/bin/ambxst-robo-hook` |
+| The user service | `~/.config/systemd/user/ambxst-robo.service` |
+| The installer's log | `~/.local/state/ambxst-robo/core-install.log` |
 | Sockets | `$XDG_RUNTIME_DIR/ambxst-robo-core.sock` (shell), `$XDG_RUNTIME_DIR/ambxst-robo.sock` (relay) |
 
-### Update
-
-```sh
-git pull
-(cd core && cargo build --release)
-tools/ambxst-robo-update          # installs both binaries, restarts the service once no chat turn runs
-ambxst mods update drpezzer.ambxst-robo
-ambxst reload
-```
-
-If `mods update` asks you to review the changes (a release changed the mod's
-permissions or commands), run `ambxst mods check-updates drpezzer.ambxst-robo`
-and then `ambxst mods apply-updates <plan>` as it says.
-
 ### Uninstall
+
+Remove the agents' hooks first (Robo's settings, Agents) if you installed them. Then:
 
 ```sh
 ambxst mods disable drpezzer.ambxst-robo && ambxst mods remove drpezzer.ambxst-robo && ambxst reload
@@ -173,7 +173,6 @@ systemctl --user disable --now ambxst-robo.service
 rm ~/.config/systemd/user/ambxst-robo.service ~/.local/bin/ambxst-robo ~/.local/bin/ambxst-robo-hook
 ```
 
-Remove the agents' hooks first (Robo's settings, Agents) if you installed them.
 Your settings and chats stay in `~/.config/ambxst-robo` and
 `~/.local/share/ambxst-robo`.
 
@@ -181,7 +180,31 @@ Coming from Coucou on Linux? `ambxst-robo --migrate-from-coucou --dry-run`
 shows what it would copy over (settings, saved chats, keys, hooks); run it
 again without `--dry-run` to do it. It copies and never deletes.
 
-## Build
+## Build from source
+
+For working on Robo. You need Git, Rust (stable) with Cargo, the libdbus-1
+headers (`libdbus-1-dev`, `dbus` on Arch) and, to rebuild `robo-lib.js`,
+Node.js 18+ and npm.
+
+```sh
+git clone https://github.com/drpezzer/ambxst-robo.git
+cd ambxst-robo
+```
+
+First tell the mod to leave your builds alone — without this it replaces a
+daemon that is not its own version with the release's:
+
+```sh
+mkdir -p ~/.config/ambxst-robo && touch ~/.config/ambxst-robo/dev
+```
+
+(`AMBXST_ROBO_DEV=1` in Ambxst's environment does the same.)
+
+The daemon: `cd core && cargo build --release`, tests with `cargo test`
+(they write under `$XDG_DATA_HOME`; point it at a temporary directory).
+`core/smoke.py` starts an isolated daemon and feeds it fake hook events.
+`tools/ambxst-robo-update` installs the build into `~/.local/bin` and restarts
+the service once no chat turn runs (the unit: `core/ambxst-robo.service`).
 
 The library the mod loads, `mod/payload/modules/robo/robo-lib.js`, is built
 from `lib/` with esbuild:
@@ -191,16 +214,31 @@ npm ci
 node lib/build.mjs            # → mod/payload/modules/robo/robo-lib.js
 ```
 
-After adding or removing payload files, regenerate the manifest's overlay list
-(`git add` the files first; it lists tracked files only):
+After adding or removing payload files, or to bump the version, regenerate the
+manifest (`git add` new files first; it lists tracked files only). It also
+writes `mod/payload/modules/robo/core/RELEASE`, the daemon version the mod
+installs:
 
 ```sh
-python3 tools/gen-manifest.py
+python3 tools/gen-manifest.py [--version X.Y.Z]
 ```
 
-The daemon: `cd core && cargo build --release`, tests with `cargo test`
-(they write under `$XDG_DATA_HOME`; point it at a temporary directory).
-`core/smoke.py` starts an isolated daemon and feeds it fake hook events.
+Install the mod from your clone with `ambxst mods install "$PWD/mod"` (Ambxst
+keeps the path: `ambxst mods update` reloads it from there).
+
+`tools/test-core-install.sh` tests the mod's daemon installer
+(`mod/payload/modules/robo/core/robo-core-install.sh`) in a sandbox, against a
+local server, without touching your session.
+
+### Releases
+
+The version is the same in `core/Cargo.toml`, `mod/ambxst.mod.json` and
+`mod/payload/modules/robo/core/RELEASE`. Pushing a tag `vX.Y.Z` runs
+`.github/workflows/release.yml`: it builds the daemon on Ubuntu 22.04 for
+x86_64 and aarch64 and attaches `ambxst-robo-X.Y.Z-<arch>.tar.gz` and
+`SHA256SUMS` to the GitHub release (created if missing), where installed
+mods of that version download it. Publish the release before the mod update
+reaches `main`.
 
 ## Sounds
 

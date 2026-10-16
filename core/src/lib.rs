@@ -520,6 +520,8 @@ fn dispatch_sync(app: &AppHandle, client: u64, cmd: &str, args: &Value) -> Resul
     let shared = &*shared;
     match cmd {
         "ping" => ok("pong"),
+        // ambxst-robo: the mod checks that the daemon running is its own version.
+        "version" => ok(serde_json::json!({ "version": env!("CARGO_PKG_VERSION"), "protocol": 1 })),
         "boot" => ok(boot(shared)),
         "save_settings" => {
             save_settings(app, shared, arg(args, "settings")?);
@@ -924,6 +926,7 @@ pub fn start(app: &AppHandle) {
 
     log::line(format!("--- ambxst-robo {} started ---", env!("CARGO_PKG_VERSION")));
     hooks::ensure_hook_exe();
+    hooks::refresh_installed();
     pipe::start(app.clone());
     integrations::start(app.clone());
     spotify::sync(app, &loaded.active_integrations);

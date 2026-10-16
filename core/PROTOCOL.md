@@ -77,6 +77,7 @@ All results are JSON. `null` = Tauri's `()`.
 
 | cmd | args | result |
 |---|---|---|
+| `version` | – | `{version, protocol}` **(core, 1.1.0)**: the daemon's version (the mod compares it with its own and updates the daemon when they differ) and the protocol revision (1). Older daemons answer `unknown command`. |
 | `boot` | – | `{settings, screen, version, hookPath, cursorPoll, relaySocket}` — `settings` is the full Settings object (settings.json, camelCase), with `hooksInstalled`/`planRelayInstalled` taken from ~/.claude/settings.json. **(core)** `screen` is a placeholder `{x:0,y:0,width:0,height:0,scale:1}`, `cursorPoll` is always `false`, `relaySocket` (new) is whether this daemon serves `ambxst-robo.sock` (false if the Tauri Coucou holds it). |
 | `save_settings` | `settings: Settings` | `null`. Saves settings.json, emits `settings-changed`. `desktopMascot` and every `phone*` field are kept from the stored settings (not taken from the client). **(core)** `screen` and `autostart` are stored but not acted on. |
 | `set_system_languages` | `languages: string[]` | `null` (Rust-side strings follow "System" language). |

@@ -207,6 +207,55 @@ pub fn status() -> HookStatus {
     }
 }
 
+/// Our entries in `settings` are exactly the ones this version installs: one
+/// per event of HOOK_EVENTS, with its command and timeout, and none elsewhere.
+fn ours_are_current(settings: &Value) -> bool {
+    let Some(hooks) = settings.get("hooks").and_then(Value::as_object) else { return false };
+    for (event, value) in hooks {
+        let ours: Vec<&Value> = value
+            .as_array()
+            .map(|list| list.iter().filter(|e| entry_is_ours(e)).collect())
+            .unwrap_or_default();
+        match HOOK_EVENTS.iter().find(|(e, _)| e == event) {
+            None if !ours.is_empty() => return false,
+            None => {}
+            Some((_, timeout)) => {
+                let expected = json!({
+                    "hooks": [{ "type": "command", "command": hook_command(event), "timeout": timeout }]
+                });
+                if ours.len() != 1 || *ours[0] != expected {
+                    return false;
+                }
+            }
+        }
+    }
+    HOOK_EVENTS.iter().all(|(e, _)| hooks.contains_key(*e))
+}
+
+/// ambxst-robo (zero-touch updates): hooks the user installed (an explicit
+/// click in Settings → Agents, or the first-launch prompt) follow the daemon's
+/// version. When an update hooks a new event, drops one or changes a timeout,
+/// our entries are rewritten at start, through the same writer as the
+/// install (dated backup, everybody else's hooks untouched). Hooks that were
+/// never installed are never added here.
+pub fn refresh_installed() {
+    let current = read_settings_lossy();
+    if !status().installed || ours_are_current(&current) {
+        return;
+    }
+    let edits = vec![FileEdit {
+        path: settings_path(),
+        edit: config_file::json_edit("settings.json".into(), |current| merged(&without_ours(current)?).map(Some)),
+    }];
+    match config_file::preview(&edits).and_then(|plan| config_file::apply(&edits, &plan.fingerprint)) {
+        Ok(backups) => crate::log::line(format!(
+            "Claude Code hooks updated for this version (backup: {})",
+            backups.first().map(|p| p.display().to_string()).unwrap_or_else(|| "none".into())
+        )),
+        Err(err) => crate::log::line(format!("could not update the Claude Code hooks: {err}")),
+    }
+}
+
 pub fn preview(install: bool) -> Result<HookPreview, String> {
     Ok(plan_to_preview(config_file::preview(&edits(install))?))
 }
@@ -451,6 +500,33 @@ fn install_relay(src: &Path, dest: &Path) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn installed_hooks_are_current_only_when_they_match_this_version() {
+        let installed = merged(&json!({})).unwrap();
+        assert!(ours_are_current(&installed));
+        // Somebody else's hook beside ours changes nothing.
+        let mut theirs = installed.clone();
+        theirs["hooks"]["Stop"].as_array_mut().unwrap().insert(0, json!({ "hooks": [{ "type": "command", "command": "notify-send done" }] }));
+        assert!(ours_are_current(&theirs));
+        // An older install: a timeout changed, an event missing, a stale event.
+        let mut old = installed.clone();
+        old["hooks"]["PermissionRequest"][0]["hooks"][0]["timeout"] = json!(60);
+        assert!(!ours_are_current(&old));
+        let mut missing = installed.clone();
+        missing["hooks"].as_object_mut().unwrap().remove("PostCompact");
+        assert!(!ours_are_current(&missing));
+        let mut stale = installed.clone();
+        stale["hooks"]["Gone"] = json!([{ "hooks": [{ "type": "command", "command": hook_command("Gone") }] }]);
+        assert!(!ours_are_current(&stale));
+        // The refresh puts this version's set back and keeps theirs.
+        let mut both = stale.clone();
+        both["hooks"]["Stop"] = theirs["hooks"]["Stop"].clone();
+        let fixed = merged(&without_ours(&both).unwrap()).unwrap();
+        assert!(ours_are_current(&fixed));
+        assert!(fixed["hooks"]["Stop"].as_array().unwrap().iter().any(|e| !entry_is_ours(e)));
+        assert!(!ours_are_current(&json!({})));
+    }
 
     #[test]
     fn the_hooks_leave_the_status_line_alone() {

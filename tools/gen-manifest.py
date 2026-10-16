@@ -9,6 +9,10 @@ tested on) are kept from the manifest already there; bump the version with
 AGPL-3.0-or-later); the public repo's copy of this file (tools/export-public.sh)
 has PUBLIC_REPO = True and no private-build branch. payload/assets/robo/sounds-public (the public repo's
 built-in sounds, kept here for the export) is never an overlay here.
+
+It also writes payload/modules/robo/core/RELEASE (version=, build=public or
+personal): the daemon version the mod installs and expects (RoboCore.qml,
+robo-core-install.sh); a personal build never installs one.
 """
 import argparse, json, os, subprocess
 
@@ -57,17 +61,26 @@ manifest = {
     "description": DESCRIPTION + NOTE,
     "license": LICENSE,
     "author": "drpezzer",
+    "homepage": "https://github.com/drpezzer/ambxst-robo",
     "compatibility": compat,
     "dependencies": [],
     "conflicts": [],
-    "commands": ["ambxst-robo"],
+    # Not "ambxst-robo": the mod installs its daemon itself (modules/robo/core),
+    # and a command missing on PATH would stop Ambxst from enabling it at all.
+    "commands": [],
     "permissions": [
+        "Installs and updates its daemon itself: downloads ambxst-robo from this project's GitHub release for the mod's version (sha256-checked; built with cargo where no download fits), puts it in ~/.local/bin and runs it as the systemd user service ambxst-robo.service",
         "Talks to ambxst-robo (a user service) over $XDG_RUNTIME_DIR/ambxst-robo-core.sock",
         "Takes over SUPER+A (`ambxst run assistant`) and the bar's logo",
         "Opens the notch on its own for permission requests and questions, without taking the keyboard",
     ],
     "operations": ops,
 }
+# The version the mod's core installer (payload/modules/robo/core) installs
+# and the shell expects from the daemon; a personal build never installs one.
+release = os.path.join(root, "payload", "modules", "robo", "core", "RELEASE")
+with open(release, "w") as fh:
+    fh.write(f"version={manifest['version']}\nbuild={'public' if public else 'personal'}\n")
 with open(path, "w") as fh:
     json.dump(manifest, fh, indent=2)
     fh.write("\n")

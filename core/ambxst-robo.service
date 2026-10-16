@@ -1,5 +1,8 @@
 # ambxst-robo — Ambxst Robo's backend daemon (a Linux/Ambxst port of Coucou).
-# NOT installed. To install:
+# The mod installs the daemon and writes this unit itself (with the relay line
+# below on): mod/payload/modules/robo/core/robo-core-install.sh. This copy is
+# for building from source (touch ~/.config/ambxst-robo/dev first, so the mod
+# leaves your build alone):
 #   install -Dm755 target/release/ambxst-robo ~/.local/bin/ambxst-robo
 #   install -Dm755 target/release/ambxst-robo-hook ~/.local/bin/ambxst-robo-hook
 #   cp ambxst-robo.service ~/.config/systemd/user/ && systemctl --user daemon-reload
@@ -18,9 +21,10 @@ Type=simple
 ExecStart=%h/.local/bin/ambxst-robo
 Restart=on-failure
 RestartSec=2
-# Uncomment to let it update ~/.local/share/ambxst-robo/bin/ambxst-robo-hook from the
-# ambxst-robo-hook next to the binary, as the Tauri app does at launch.
-#Environment=AMBXST_ROBO_INSTALL_RELAY=1
+# Updates ~/.local/share/ambxst-robo/bin/ambxst-robo-hook (the relay agents'
+# hooks run) from the ambxst-robo-hook next to the binary at each start, as
+# the Tauri app does at launch, so the relay is always the daemon's version.
+Environment=AMBXST_ROBO_INSTALL_RELAY=1
 
 [Install]
 WantedBy=graphical-session.target

@@ -1,0 +1,129 @@
+# Builds the daemon (ambxst-robo + ambxst-robo-hook) for each release tag and
+# attaches it to the tag's GitHub release, where the mod's installer
+# (mod/payload/modules/robo/core/robo-core-install.sh) downloads it:
+#   ambxst-robo-<version>-<arch>.tar.gz   (x86_64, aarch64)
+#   SHA256SUMS
+# Built on Ubuntu 22.04 (glibc 2.35), so the binaries run on any distribution
+# from then on; they need libdbus-1 at run time (every desktop has it).
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to build and (re)upload, e.g. v1.1.0"
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  TAG: ${{ github.event.inputs.tag || github.ref_name }}
+  CARGO_TERM_COLOR: never
+
+jobs:
+  build:
+    name: Build ${{ matrix.arch }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-22.04
+            test: true
+          - arch: aarch64
+            runner: ubuntu-22.04-arm
+            test: false
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - name: The tag matches the versions
+        run: |
+          v="${TAG#v}"
+          [[ $v =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::tag $TAG is not vX.Y.Z"; exit 1; }
+          grep -qx "version = \"$v\"" core/Cargo.toml || { echo "::error::core/Cargo.toml is not $v"; exit 1; }
+          grep -qx "version=$v" mod/payload/modules/robo/core/RELEASE || { echo "::error::mod/payload/modules/robo/core/RELEASE is not $v"; exit 1; }
+          python3 -c 'import json, sys; sys.exit(json.load(open("mod/ambxst.mod.json"))["version"] != sys.argv[1])' "$v" \
+            || { echo "::error::mod/ambxst.mod.json is not $v"; exit 1; }
+
+      - name: Build dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends libdbus-1-dev pkg-config build-essential
+
+      - name: Rust (stable)
+        run: |
+          if ! command -v rustup >/dev/null; then
+            curl -fsSL --proto '=https' --tlsv1.2 https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable
+            echo "$HOME/.cargo/bin" >>"$GITHUB_PATH"
+          else
+            rustup toolchain install stable --profile minimal
+            rustup default stable
+          fi
+
+      - name: Build
+        working-directory: core
+        run: cargo build --release --locked
+
+      - name: Test
+        if: matrix.test
+        working-directory: core
+        run: |
+          t="$(mktemp -d)"
+          mkdir -p "$t/run" && chmod 700 "$t/run"
+          XDG_DATA_HOME="$t/data" XDG_CONFIG_HOME="$t/config" XDG_STATE_HOME="$t/state" XDG_RUNTIME_DIR="$t/run" \
+            cargo test --release --locked
+
+      - name: Pack
+        run: |
+          v="${TAG#v}"
+          name="ambxst-robo-$v-${{ matrix.arch }}"
+          mkdir -p "dist/$name"
+          cp core/target/release/ambxst-robo core/target/release/ambxst-robo-hook LICENSE NOTICE "dist/$name/"
+          [[ "$("dist/$name/ambxst-robo" --version)" == "ambxst-robo $v" ]] || { echo "::error::the binary is not $v"; exit 1; }
+          echo "glibc needed: $(objdump -T "dist/$name/ambxst-robo" | grep -o 'GLIBC_[0-9.]*' | sort -Vu | tail -n1)"
+          tar -C dist --owner=0 --group=0 --numeric-owner -czf "dist/$name.tar.gz" "$name"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ambxst-robo-${{ matrix.arch }}
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  release:
+    name: Publish
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Checksums
+        working-directory: dist
+        run: |
+          sha256sum ./*.tar.gz | sed 's# \./# #' >SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Upload to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v="${TAG#v}"
+          # This version's section of CHANGELOG.md as the notes of a new release.
+          awk -v v="$v" '/^## / { on = index($0, "## " v " ") == 1 || $0 == "## " v; next } on' CHANGELOG.md >notes.md
+          [[ -s notes.md ]] || echo "Ambxst Robo $v" >notes.md
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --verify-tag --title "Ambxst Robo $v" --notes-file notes.md
+          fi
+          gh release upload "$TAG" dist/*.tar.gz dist/SHA256SUMS --clobber
