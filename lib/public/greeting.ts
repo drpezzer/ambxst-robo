@@ -389,7 +389,8 @@ function handFill(x: CanvasRenderingContext2D, x0: number, y0: number, x1: numbe
 }
 
 // ── Arms and hands, per mascot ────────────────────────────────────────────────
-// Robo: one rounded bar per arm, in his shell, lit like his head (a soft rim
+// Robo: one short rounded bar per hand, where the hand goes and about its
+// size, in his shell, lit like his head (a soft rim
 // on the light's side, a shaded edge opposite), its corners a touch rounder or
 // squarer with his head's shape. Axenide: round hands in his own colour,
 // shaded like his body. Neither: upstream's mittens. Where the hands go
@@ -408,7 +409,7 @@ type AmbxstArms = Extract<GreetArms, { kind: "ambxst" }>;
 const ROBO_ROUND: Record<string, number> = { circle: 0.42, rectangle: 0.32, hexagon: 0.3, square: 0.26 };
 
 /**
- * One arm of Robo, from (ax, ay) (behind his ear) to (bx, by), its end, w
+ * One arm of Robo, from (ax, ay) to (bx, by), w
  * thick: a rounded bar of his shell, shaded across like a moulded slab (its
  * edges turned away), a lit rim toward the key light and a shaded one away.
  */
@@ -515,8 +516,15 @@ function ambxstHand(x: CanvasRenderingContext2D, cx: number, cy: number, r: numb
   x.restore();
 }
 
-/** Where Robo's arms leave his head: behind his ears. */
-const roboShoulder = (hw: number, hh: number, side: number) => ({ x: side * hw * 0.8, y: hh * 0.04 });
+/**
+ * Robo's arm where a hand goes: one bar of his, centred on (cx, cy), along
+ * the angle ang, L long and T thick (roboArm from one end to the other).
+ */
+function roboBar(x: CanvasRenderingContext2D, cx: number, cy: number, ang: number, L: number, T: number, a: RoboArms) {
+  const ux = Math.cos(ang) * L / 2;
+  const uy = Math.sin(ang) * L / 2;
+  roboArm(x, cx - ux, cy - uy, cx + ux, cy + uy, T, a);
+}
 
 function drawHandL(x: CanvasRenderingContext2D, hw: number, hh: number, p: Pose, arms: GreetArms | null) {
   if (p.handL <= 0.01) return;
@@ -527,11 +535,10 @@ function drawHandL(x: CanvasRenderingContext2D, hw: number, hh: number, p: Pose,
     return;
   }
   if (arms?.kind === "robo") {
-    const s = roboShoulder(hw, hh, -1);
-    // one arm from behind his ear, swinging from it as he waves, its end
-    // where the hand would be
-    const th = Math.atan2(hy - s.y, hx - s.x);
-    roboArm(x, s.x, s.y, hx + Math.cos(th) * r * 0.6, hy + Math.sin(th) * r * 0.6, hh * 2 * 0.19 * p.handL, arms);
+    // a short bar where the round hand is, about its size, raised out to the
+    // side like the resting one (mirrored), rocking a little as it waves
+    const bob = p.wave >= 0 ? Math.sin(p.wave * 2 * Math.PI * 5) : 0;
+    roboBar(x, hx, hy, Math.PI + 0.61 + bob * 0.22, r * 2.2, r * 1.4, arms);
     return;
   }
   x.save();
@@ -549,13 +556,12 @@ function drawHandR(x: CanvasRenderingContext2D, hw: number, hh: number, p: Pose,
   const ux = Math.cos(h.ang);
   const uy = Math.sin(h.ang);
   if (arms?.kind === "ambxst") {
-    ambxstHand(x, h.x + ux * h.L * 0.25, h.y + uy * h.L * 0.25, h.T * 0.62, arms, p.sx, p.sy);
+    ambxstHand(x, h.x + ux * h.L * 0.15, h.y + uy * h.L * 0.15, h.T * 0.68, arms, p.sx, p.sy);
     return;
   }
   if (arms?.kind === "robo") {
-    const s = roboShoulder(hw, hh, 1);
-    // one arm from behind his ear to the capsule's raised end
-    roboArm(x, s.x, s.y, h.x + ux * h.L * 0.5, h.y + uy * h.L * 0.5, hh * 2 * 0.19 * p.handR, arms);
+    // a short bar where the capsule is, its size and slant
+    roboBar(x, h.x, h.y, h.ang, h.L, h.T, arms);
     return;
   }
   x.save();

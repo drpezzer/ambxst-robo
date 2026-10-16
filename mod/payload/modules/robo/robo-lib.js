@@ -19855,7 +19855,11 @@ ${t("Middle-click to copy the path")}` : "");
     x.restore();
     x.restore();
   }
-  var roboShoulder = (hw, hh, side) => ({ x: side * hw * 0.8, y: hh * 0.04 });
+  function roboBar(x, cx, cy, ang, L, T3, a) {
+    const ux = Math.cos(ang) * L / 2;
+    const uy = Math.sin(ang) * L / 2;
+    roboArm(x, cx - ux, cy - uy, cx + ux, cy + uy, T3, a);
+  }
   function drawHandL(x, hw, hh, p, arms) {
     if (p.handL <= 0.01) return;
     const { x: hx, y: hy, r } = handLPos(hw, hh, p);
@@ -19865,9 +19869,8 @@ ${t("Middle-click to copy the path")}` : "");
       return;
     }
     if ((arms == null ? void 0 : arms.kind) === "robo") {
-      const s = roboShoulder(hw, hh, -1);
-      const th = Math.atan2(hy - s.y, hx - s.x);
-      roboArm(x, s.x, s.y, hx + Math.cos(th) * r * 0.6, hy + Math.sin(th) * r * 0.6, hh * 2 * 0.19 * p.handL, arms);
+      const bob = p.wave >= 0 ? Math.sin(p.wave * 2 * Math.PI * 5) : 0;
+      roboBar(x, hx, hy, Math.PI + 0.61 + bob * 0.22, r * 2.2, r * 1.4, arms);
       return;
     }
     x.save();
@@ -19883,12 +19886,11 @@ ${t("Middle-click to copy the path")}` : "");
     const ux = Math.cos(h2.ang);
     const uy = Math.sin(h2.ang);
     if ((arms == null ? void 0 : arms.kind) === "ambxst") {
-      ambxstHand(x, h2.x + ux * h2.L * 0.25, h2.y + uy * h2.L * 0.25, h2.T * 0.62, arms, p.sx, p.sy);
+      ambxstHand(x, h2.x + ux * h2.L * 0.15, h2.y + uy * h2.L * 0.15, h2.T * 0.68, arms, p.sx, p.sy);
       return;
     }
     if ((arms == null ? void 0 : arms.kind) === "robo") {
-      const s = roboShoulder(hw, hh, 1);
-      roboArm(x, s.x, s.y, h2.x + ux * h2.L * 0.5, h2.y + uy * h2.L * 0.5, hh * 2 * 0.19 * p.handR, arms);
+      roboBar(x, h2.x, h2.y, h2.ang, h2.L, h2.T, arms);
       return;
     }
     x.save();
