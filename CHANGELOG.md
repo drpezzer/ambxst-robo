@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.1.1 — new greeting hands
 
 - **New hands in the launch greeting**: Robo waves with simple hands, one
   short rounded bar each beside his head, in his own shell colour and lit

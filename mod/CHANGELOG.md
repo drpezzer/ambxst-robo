@@ -1,10 +1,10 @@
 # Changelog
 
-## Unreleased
+## 1.1.1 — new greeting hands
 
-- **New arms in the launch greeting**: Robo waves with simple arms, one
-  rounded bar each in his own shell colour, lit like his head. Axenide gets
-  round hands in his colour.
+- **New hands in the launch greeting**: Robo waves with simple hands, one
+  short rounded bar each beside his head, in his own shell colour and lit
+  like it. Axenide gets round hands in his colour.
 
 ## 1.1.0 — installs itself
 

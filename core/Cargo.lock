@@ -15,7 +15,7 @@ dependencies = [
 
 [[package]]
 name = "ambxst-robo"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
  "dbus",
  "keyring",
@@ -30,7 +30,7 @@ dependencies = [
 
 [[package]]
 name = "ambxst-robo-hook"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
  "libc",
  "serde_json",
