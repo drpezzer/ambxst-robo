@@ -1,5 +1,7 @@
 # Ambxst Robo
 
+![Robo in the notch: it opens on a chat, works through a turn and answers](docs/media/notch-open.gif)
+
 Version 1.0.0 — see the [changelog](CHANGELOG.md).
 
 Ambxst Robo puts a small robot in [Ambxst](https://github.com/Axenide/Ambxst)'s
@@ -20,6 +22,40 @@ Settings → Style.
 It is a port of [Coucou](https://github.com/Louis-CFM/coucou) by Louis Raillé
 to Linux and Ambxst: Coucou's island logic runs inside Ambxst's QML shell, and
 its backend is reimplemented as a small Rust daemon.
+
+## Gallery
+
+Rendered with demo data (made-up projects and chats).
+
+| | |
+| --- | --- |
+| ![A chat at work: the working line and the folder chip](docs/media/chat-working.png) | ![A message typed during a turn waits under the working line](docs/media/chat-queued.png) |
+| The chat at work: "✻ verb…" while Claude Code runs, the working directory's chip beside the model. | A message sent mid-turn waits under the working line, with its caption. |
+| ![The home view with the chats column](docs/media/home.png) | ![Settings](docs/media/settings.png) |
+| Home: the session in front, the other agents' minis, the home chat and the chats column. | Settings: agents' hooks, and Style (Robo or Axenide, Robo's shape, antenna, colours). |
+
+Robo through a turn: thinking, working while a tool runs, talking while the answer streams in, happy when done.
+
+![Robo thinking, working, then talking during a turn](docs/media/robo-turn.gif)
+
+The bar: Robo in place of the Ambxst logo, the other sessions as minis beside him. A
+session's helpers (subagents) show up as liquid blobs that pop when they finish.
+
+![The bar with minis](docs/media/bar.png)
+
+![Helper blobs appearing in the bar](docs/media/bar-helpers.gif)
+
+Drag a chat's mini onto the chats column to put it away: it melts into a ball of its colour and pops.
+
+![Dragging a mini onto the chats column](docs/media/drag-to-chats.gif)
+
+The chats column on its own, and the greeting the first time the notch opens (Axenide, the default mascot):
+
+<img src="docs/media/chats-column.png" alt="The chats column" width="215"> <img src="docs/media/greeting.gif" alt="The launch greeting" width="600">
+
+The two mascots and their moods:
+
+![Robo and Axenide expressions](docs/media/mascots.png)
 
 ## How it fits together
 
